@@ -39,6 +39,9 @@ var _photos := PhotoCoordinator.new(self)
 const PlaybackCoordinator := preload("res://scripts/playback_coordinator.gd")
 var _playback := PlaybackCoordinator.new(self)
 
+const HeadsetHandover := preload("res://scripts/headset_handover.gd")
+var _handover := HeadsetHandover.new()
+
 const PlayerSettingsController := preload("res://scripts/player_settings_controller.gd")
 var _preferences := PlayerSettingsController.new(self)
 
@@ -176,6 +179,10 @@ var reclining_mode: bool:
 		_presentation.reclining_mode = value
 
 
+func _on_user_presence_changed(present: bool) -> void:
+	_handover.presence_changed(present, video if not photo_active else null)
+
+
 func _ready() -> void:
 	var world := WorldEnvironment.new()
 	world.environment = Environment.new()
@@ -303,6 +310,8 @@ func _ready() -> void:
 	)
 	video.screen_curve = clampf(float(settings.get_value("screen", "curve", 0.0)), 0.0, 1.0)
 	add_child(video)
+	if not desktop and openxr and openxr.has_signal("user_presence_changed"):
+		openxr.connect("user_presence_changed", _on_user_presence_changed)
 	screen_layout.restore()
 	_update_thumbnail_protection()
 	video.sharpness = Quality.load_sharpness(settings, low_end_gpu)

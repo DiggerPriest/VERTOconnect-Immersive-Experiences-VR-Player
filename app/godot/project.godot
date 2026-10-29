@@ -31,6 +31,7 @@ openxr/default_action_map="res://openxr_action_map.tres"
 ; Hold the chosen video/UI quality under segmentation load.
 openxr/extensions/meta/dynamic_resolution=false
 openxr/extensions/hand_tracking=true
+openxr/extensions/user_presence=true
 openxr/extensions/hand_interaction_profile=true
 ; Keep PICO on the 0.2.1 controller/joint path pending native hand-profile validation.
 openxr/extensions/hand_interaction_profile.pico=false
