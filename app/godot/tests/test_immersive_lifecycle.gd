@@ -65,14 +65,14 @@ func _run() -> void:
 			),
 			"Application recenter removes old offsets " + name
 		)
-	# An ambiguous 2:1 frame stays flat; an explicit projection change aligns the current gaze.
+	# An unmarked 2:1 frame defaults to 360 mono; an explicit change aligns current gaze.
 	main.video.open_local("file:///alignment/unnamed.mp4", "unnamed.mp4")
 	main.video.media.format = {"width": 8192, "height": 4096, "pixel_aspect": 1.0}
 	head.rotation = Vector3(-0.17, 0.9, 0)
 	main.video._complete_layout()
 	check(
-		main.video.geometry == 0 and not main.video.stereo_sbs,
-		"First 2:1 frame does not infer VR180 SBS"
+		main.video.geometry == 3 and not main.video.stereo_sbs,
+		"First unmarked 2:1 frame remains 360 mono"
 	)
 	main.video.set_projection(1)
 	check(aligned(main.video), "Explicit VR180 transition aligns current gaze")

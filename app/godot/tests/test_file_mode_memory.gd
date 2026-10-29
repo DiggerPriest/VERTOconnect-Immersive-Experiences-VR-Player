@@ -291,7 +291,7 @@ func _run() -> void:
 		video.mode_memory.sequence == before,
 		"Rejected source cannot overwrite its remembered settings"
 	)
-	# A file without a remembered mode: explicit markers win, ambiguous 2:1 stays flat.
+	# A file without a remembered mode: explicit markers win, unmarked defaults to 360 mono.
 	host.next_id = 7
 	check(
 		(
@@ -317,12 +317,12 @@ func _run() -> void:
 	video._complete_layout()
 	check(
 		(
-			video.geometry == 0
+			video.geometry == 3
 			and not video.stereo_sbs
 			and video._pending_revision.is_empty()
 			and video._layout_pending == null
 		),
-		"Unmarked 2:1 stays flat mono without restarting processing"
+		"Unmarked 2:1 stays 360 mono without restarting processing"
 	)
 	for lock in [
 		{"geometry": 0, "layout": 0, "depth": false, "fisheye_fov": 180},

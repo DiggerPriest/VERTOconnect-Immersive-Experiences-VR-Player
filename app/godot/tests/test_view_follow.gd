@@ -261,7 +261,7 @@ func _run() -> void:
 		),
 		"Library follows horizontal head direction/translation while retaining its upright pose"
 	)
-	main._on_library_chosen("file:///follow/first_2D.mp4", "first_2D.mp4")
+	main._on_library_chosen("file:///follow/first_flat_2D.mp4", "first_flat_2D.mp4")
 	main._place_screen()
 	check(
 		(
@@ -401,7 +401,7 @@ func _run() -> void:
 		"Recenter preserves size and content rotation"
 	)
 	screen_local = placement(main, main.video)
-	main._on_library_chosen("file:///follow/next_2D.mp4", "next_2D.mp4")
+	main._on_library_chosen("file:///follow/next_flat_2D.mp4", "next_flat_2D.mp4")
 	main._place_screen()
 	check(
 		(
