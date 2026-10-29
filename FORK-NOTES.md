@@ -26,7 +26,8 @@ default menu scenery. The room is hidden during immersive playback and
 passthrough. Original background choices remain available.
 
 The Quest opening screen presents the VERTOconnect Immersive Experiences
-wordmark with a five-second hold and an animated indicator. The library sidebar
+VR Player wordmark over the VERTOconnect website's hero artwork, with a
+five-second hold and an animated indicator. The library sidebar
 shows Immersive Videos and Settings; managed-library browsing starts with a
 video-only filter and does not expose the All/Video/Images controls.
 
