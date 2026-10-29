@@ -446,7 +446,12 @@ func _ready() -> void:
 	report_timer.start()
 	_update_status()
 	if not OS.get_cmdline_user_args().has("--mpv-diagnostic-2d"):
-		_show_recent_menu()
+		if OS.get_name() == "Android":
+			var splash := preload("res://scripts/verto_splash.gd").new()
+			camera.add_child(splash)
+			splash.finished.connect(_show_recent_menu)
+		else:
+			_show_recent_menu()
 	Log.record(
 		"ui_ready",
 		{

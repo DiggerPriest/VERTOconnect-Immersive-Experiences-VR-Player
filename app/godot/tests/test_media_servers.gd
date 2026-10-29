@@ -181,10 +181,9 @@ func _run() -> void:
 	check(b.pending.is_empty(), "leaving server cancels requests")
 	check(
 		(
-			Menu.NAV_ORDER.find(Menu.Section.MEDIA_SERVER) + 1
-			== Menu.NAV_ORDER.find(Menu.Section.SETTINGS)
+			Menu.NAV_ORDER == [Menu.Section.LOCAL, Menu.Section.SETTINGS]
 		),
-		"servers immediately above settings"
+		"Only immersive videos and settings appear in navigation"
 	)
 	for provider in ["emby", "jellyfin"]:
 		b.server = {"id": "test", "provider": provider}

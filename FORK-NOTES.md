@@ -25,6 +25,11 @@ The interface uses VERTO yellow and charcoal, with a lightweight 3D room as the
 default menu scenery. The room is hidden during immersive playback and
 passthrough. Original background choices remain available.
 
+The Quest opening screen presents the VERTOconnect Immersive Experiences
+wordmark with a five-second hold and an animated indicator. The library sidebar
+shows Immersive Videos and Settings; managed-library browsing starts with a
+video-only filter and does not expose the All/Video/Images controls.
+
 Use the Android tag workflow to build the APK. Future updates require the same
 release signing key; its repository secrets and the local backup are not part of
 this source tree.

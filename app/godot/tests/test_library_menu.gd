@@ -763,12 +763,12 @@ func _run() -> void:
 	menu.stick_scroll(1.0, 5.0)
 	check(menu.scroll == 0.0, "Stick up scrolls back and clamps at the top")
 	# The navigation column is angled towards the viewer: a ray aimed at an entry from the front hits it.
-	var smb_entry: Vector3 = menu._side.to_global(Vector3(0, 0.39 - Menu.Section.SMB * 0.13, 0.002))
-	var eye := smb_entry + menu._side.global_basis.z * 1.2
+	var settings_entry: Vector3 = menu._side.to_global(Vector3(0, 0.39 - 0.13, 0.002))
+	var eye := settings_entry + menu._side.global_basis.z * 1.2
 	check(
 		(
-			menu.press_pointer("left_hand", eye, smb_entry - eye, true)
-			and menu.section == Menu.Section.SMB
+			menu.press_pointer("left_hand", eye, settings_entry - eye, true)
+			and menu.section == Menu.Section.SETTINGS
 		),
 		"Ray selects an entry on the angled navigation column"
 	)
@@ -822,7 +822,7 @@ func _run() -> void:
 	menu.refresh()
 	check(
 		(
-			menu.text_snapshot().contains("本地文件")
+			menu.text_snapshot().contains("沉浸式视频")
 			and menu.text_snapshot().contains("需要媒体访问权限")
 			and not menu.text_snapshot().contains("Local files")
 		),
@@ -861,6 +861,20 @@ func _run() -> void:
 	)
 	menu.start_managed_files("")
 	check(menu._local_path() == "/storage/emulated/10/Managed files", "Invalid root is ignored")
+	menu._local_entries = [
+		{"id": "folder", "title": "Folder", "container": true},
+		{"id": "movie", "title": "Movie.mp4", "uri": "file:///Movie.mp4"},
+		{"id": "photo", "title": "Photo.jpg", "uri": "file:///Photo.jpg", "kind": "image"}
+	]
+	menu.refresh()
+	check(
+		menu.rows.size() == 2 and menu.video_queue().size() == 1,
+		"Managed library shows folders and videos but hides images"
+	)
+	check(
+		not menu._buttons.any(func(b): return b.target >= Menu.FILTER_BASE and b.target < Menu.FILTER_BASE + 3),
+		"Managed library does not show media filter buttons"
+	)
 	print("library menu checks=%d failures=%d" % [checks, failures.size()])
 	for failure in failures:
 		push_error(failure)

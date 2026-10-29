@@ -100,11 +100,9 @@ const LibrarySourceController := preload("res://scripts/library_source_controlle
 var _sources := LibrarySourceController.new(self)
 
 const Section := LibrarySourceController.Section
-const NAV := ["Recent", "Local files", "SMB network", "DLNA network", "Settings", "Media servers"]
+const NAV := ["Recent", "Immersive Videos", "SMB network", "DLNA network", "Settings", "Media servers"]
 const NAV_ICONS := ["history", "device", "server", "cast", "settings", "media_library"]
-const NAV_ORDER := [
-	Section.RECENT, Section.LOCAL, Section.SMB, Section.DLNA, Section.MEDIA_SERVER, Section.SETTINGS
-]
+const NAV_ORDER := [Section.LOCAL, Section.SETTINGS]
 const ServerBrowser := preload("res://scripts/media_server_browser.gd")
 const PlatformMethods := preload("res://scripts/platform_methods.gd")
 const StorageVolume := preload("res://scripts/storage_volume.gd")
@@ -322,6 +320,7 @@ func start_managed_files(root: String) -> void:
 	if root.is_empty() or not root.begins_with("/"):
 		return
 	section = Section.LOCAL
+	media_filter = 1
 	_local_stack = [
 		{"id": root, "title": "Internal storage", "volume": true, "removable": false},
 		{"id": root.path_join("Managed files"), "title": "Managed files", "container": true}
@@ -1322,6 +1321,8 @@ func _activate(target: int) -> void:
 		account_panel.close()
 		server_browser.cancel()
 		section = target - NAV_BASE
+		if section == Section.LOCAL and PlatformMethods.supports(platform, "media_local_storage_root"):
+			start_managed_files(str(platform.media_local_storage_root()))
 		tab = GENERAL_TAB if section == Section.SETTINGS else 0
 		scroll = 0.0
 		status = ""
@@ -1875,7 +1876,7 @@ func _draw() -> void:
 		)
 	if file_actions.editing:
 		file_actions.draw_footer()
-	elif section != Section.SETTINGS:
+	elif section not in [Section.SETTINGS, Section.LOCAL]:
 		for i in MEDIA_FILTERS.size():
 			_button(
 				FILTER_BASE + i,
