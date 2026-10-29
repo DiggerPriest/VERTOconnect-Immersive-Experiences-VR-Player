@@ -21,6 +21,10 @@ if it cannot be read, use the local storage access controls or navigate to a
 different folder. Settings choice taps allow modest pointer movement while
 retaining same-control release and scroll cancellation.
 
+The interface uses VERTO yellow and charcoal, with a lightweight 3D room as the
+default menu scenery. The room is hidden during immersive playback and
+passthrough. Original background choices remain available.
+
 Use the Android tag workflow to build the APK. Future updates require the same
 release signing key; its repository secrets and the local backup are not part of
 this source tree.

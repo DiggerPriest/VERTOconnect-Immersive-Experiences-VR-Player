@@ -29,10 +29,10 @@ const SURFACE := preload("res://shaders/menu_surface.gdshader")
 const Icons := preload("res://scripts/menu_icons.gd")
 const I18n := preload("res://scripts/i18n.gd")
 const DeviceStatus := preload("res://scripts/device_status.gd")
-const PANEL := Color(0.065, 0.075, 0.095, 0.98)
-const TILE := Color(0.105, 0.12, 0.15, 1.0)
-const ACCENT := Color(0.54, 0.93, 0.77)
-const MUTED := Color(0.56, 0.62, 0.69)
+const PANEL := Color(0.12, 0.12, 0.115, 0.98)
+const TILE := Color(0.19, 0.19, 0.18, 1.0)
+const ACCENT := Color(1.0, 0.7686, 0.1608)
+const MUTED := Color(0.72, 0.71, 0.68)
 # File names and the menu are often Chinese/Japanese: fall back to the system CJK font.
 static var FONT: Font = _make_font()
 static var _font_language := I18n.language
@@ -362,7 +362,7 @@ func _button(
 	parent: Node3D = null
 ) -> void:
 	var base := ACCENT if primary else TILE
-	var foreground := Color(0.045, 0.1, 0.085) if primary else Color(0.93, 0.95, 0.98)
+	var foreground := Color(0.14, 0.14, 0.13) if primary else Color(0.96, 0.96, 0.94)
 	var node := _quad(size, Vector3(centre.x, centre.y, 0.002), base, 11)
 	node.visible = enabled
 	(parent if parent else self).add_child(node)
@@ -649,13 +649,13 @@ func _update_highlights() -> void:
 		var color: Color = button.base_color
 		if not button.enabled:
 			color = (
-				Color(0.26, 0.44, 0.38)
+				Color(0.50, 0.39, 0.12)
 				if button.get("hover_disabled", false) and button.base_color == ACCENT
 				else Color(0.085, 0.095, 0.115, button.base_color.a)
 			)
 		elif hovered:
 			color = (
-				Color(0.67, 1.0, 0.86) if button.base_color == ACCENT else Color(0.23, 0.43, 0.38)
+				Color(1.0, 0.86, 0.50) if button.base_color == ACCENT else Color(0.42, 0.34, 0.17)
 			)
 		button.node.material_override.set_shader_parameter("surface_color", color)
 	_update_tooltip()

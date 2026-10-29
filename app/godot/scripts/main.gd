@@ -162,6 +162,7 @@ var settings_path: String:
 	set(value):
 		_preferences.settings_path = value
 var background: Node
+var verto_room: Node3D
 var view_follow: ViewFollow:
 	get:
 		return _presentation.view_follow
@@ -413,7 +414,7 @@ func _ready() -> void:
 		func(): return display.session_state
 	)
 	background = Background.new()
-	background.choice = str(settings.get_value("appearance", "background", "belfast"))
+	background.choice = str(settings.get_value("appearance", "background", "verto"))
 	background.custom_path = str(settings.get_value("appearance", "custom_path", ""))
 	background.custom_title = str(settings.get_value("appearance", "custom_title", ""))
 	background.custom_orientation = int(settings.get_value("appearance", "custom_orientation", 1))
@@ -424,6 +425,10 @@ func _ready() -> void:
 	background.changed.connect(_on_background_changed)
 	background.custom_saved.connect(_on_custom_background_saved)
 	add_child(background)
+	verto_room = preload("res://scripts/verto_room.gd").new()
+	verto_room.visible = false
+	add_child(verto_room)
+	_update_background()
 	if Engine.has_singleton("QuestPlayer"):
 		platform_plugin = Engine.get_singleton("QuestPlayer")
 		if PlatformMethods.supports(platform_plugin, "set_ui_language"):

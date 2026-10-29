@@ -186,7 +186,7 @@ const RECENT_PAGE_SIZE := COLS * GRID_LINES
 const TILE_SIZE := Vector2(0.3, 0.27)
 const GRID_PITCH := Vector2(0.33, 0.29)
 const GRID_TOP := 0.375
-const SELECTED := Color(0.16, 0.31, 0.27)
+const SELECTED := Color(0.38, 0.29, 0.10)
 const Thumbnails := preload("res://scripts/thumbnail_cache.gd")
 const COVER_BYTES := 2 * 1024 * 1024
 const FOLDER := Color(0.98, 0.78, 0.36)
@@ -970,6 +970,7 @@ func _rebuild_rows() -> void:
 				var selected := str(settings.get("background", "belfast"))
 				var backgrounds: Array = []
 				for option in [
+					["verto", "VERTO space", "image"],
 					["belfast", "Belfast sunset", "image"],
 					["dark", "Dark background", "circle"],
 					["passthrough", "Passthrough", "eyes"]

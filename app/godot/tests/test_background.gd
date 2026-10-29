@@ -135,6 +135,17 @@ func _run() -> void:
 		),
 		"Saved dark background applies at startup"
 	)
+	main.background.select("verto")
+	check(main.verto_room.visible, "VERTO room is visible behind the menu")
+	main.photo_active = true
+	main.photo.local_uri = "file:///test.jpg"
+	main.photo.geometry = main.photo.Geometry.Geometry.EQUIRECT_360
+	main._update_background()
+	check(not main.verto_room.visible, "VERTO room is hidden behind immersive media")
+	main.photo.local_uri = ""
+	main.photo_active = false
+	main._update_background()
+	check(main.verto_room.visible, "VERTO room returns after immersive media")
 	main._on_setting_changed("background", "belfast")
 	await settle(main.background)
 	check(
