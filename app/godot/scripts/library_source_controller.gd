@@ -153,7 +153,11 @@ func _on_media_list(id: int, payload: String) -> void:
 			else "Media access needed"
 		)
 	elif state != "ready":
-		host.status = str(result.get("error", "Error")).left(80)
+		host.status = (
+			"Folder not found. Check Managed files in device management."
+			if result.get("error", "") == "FOLDER_NOT_FOUND"
+			else str(result.get("error", "Error")).left(80)
+		)
 	else:
 		match kind:
 			"local":

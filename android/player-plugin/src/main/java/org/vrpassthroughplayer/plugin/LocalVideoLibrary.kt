@@ -239,11 +239,14 @@ internal class LocalVideoLibrary(
             try {
                 val volumes = LocalStorageVolumes.roots(context)
                 val entries = if (path.isEmpty()) volumes else folder(path)
-                    ?: return@execute emit(
-                        id,
-                        JSONObject(state("denied", "ALL_FILES_ACCESS_NEEDED")).put("path", path)
-                            .toString()
-                    )
+                    ?: run {
+                        val directory = File(path)
+                        val parentEntries = runCatching { directory.parentFile?.list()?.toList() }.getOrNull()
+                        val missing = LocalStoragePermissions.missingFromParent(directory.name, parentEntries)
+                        val result = if (missing) state("error", "FOLDER_NOT_FOUND")
+                            else state("denied", "ALL_FILES_ACCESS_NEEDED")
+                        return@execute emit(id, JSONObject(result).put("path", path).toString())
+                    }
                 emit(
                     id, JSONObject().put("source", "local").put("state", "ready").put("path", path)
                         .put("all_files", allFiles()).put("entries", entries)

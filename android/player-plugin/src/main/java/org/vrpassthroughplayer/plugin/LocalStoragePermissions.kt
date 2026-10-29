@@ -4,6 +4,10 @@ import android.provider.Settings
 
 /** Android 10 uses a runtime read grant; Android 11+ uses the all-files settings. */
 internal object LocalStoragePermissions {
+    // A failed listing alone cannot distinguish a missing folder from restricted access.
+    fun missingFromParent(name: String, parentEntries: List<String>?): Boolean =
+        parentEntries != null && name !in parentEntries
+
     fun allFiles(sdk: Int, manager: Boolean, legacy: Boolean, readGranted: Boolean): Boolean =
         if (sdk >= 30) manager else legacy && readGranted
 

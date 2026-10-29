@@ -6,6 +6,13 @@ import org.junit.Test
 
 class LocalStoragePermissionsTest {
     @Test
+    fun folderNotFoundRequiresAReadableParentListing() {
+        assertTrue(LocalStoragePermissions.missingFromParent("Managed files", listOf("Movies", "Download")))
+        assertFalse(LocalStoragePermissions.missingFromParent("Managed files", listOf("Managed files")))
+        assertFalse(LocalStoragePermissions.missingFromParent("Managed files", null))
+    }
+
+    @Test
     fun android10NeedsBothLegacyStorageAndTheReadGrant() {
         assertFalse(LocalStoragePermissions.allFiles(29, false, true, false))
         assertFalse(LocalStoragePermissions.allFiles(29, false, false, true))

@@ -816,6 +816,14 @@ func _run() -> void:
 	)
 	menu._pending[997] = "local"
 	menu._on_media_list(997, JSON.stringify({"state": "denied"}))
+	menu._pending[996] = "local"
+	menu._on_media_list(996, JSON.stringify({"state": "error", "error": "FOLDER_NOT_FOUND"}))
+	check(
+		menu.status == "Folder not found. Check Managed files in device management.",
+		"A confirmed missing folder is explained without suggesting a permission grant"
+	)
+	menu._pending[995] = "local"
+	menu._on_media_list(995, JSON.stringify({"state": "denied"}))
 	# Language: follows the choice, the same menu in Chinese and back in English.
 	var I18n := preload("res://scripts/i18n.gd")
 	I18n.use("zh")

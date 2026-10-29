@@ -4,7 +4,9 @@ signal changed
 signal custom_saved(path: String, title: String, orientation: int)
 const Info := preload("res://scripts/image_info.gd")
 const BELFAST := "res://backgrounds/belfast_sunset_puresky.jpg"
-const CHOICES := ["verto", "belfast", "dark", "passthrough", "custom"]
+const VERTO_PANORAMA := preload("res://backgrounds/verto-trades-panorama.png")
+const VERTO_SYDNEY := preload("res://backgrounds/verto-training-panorama.png")
+const CHOICES := ["verto", "verto_sydney", "verto_room", "belfast", "dark", "passthrough", "custom"]
 var directory := "user://backgrounds"
 var choice := "belfast"
 var custom_path := ""
@@ -22,6 +24,9 @@ var _builtin_requested := false
 var _thread: Thread
 var _job := {}
 var _generation := 0
+var _ambient_active := false
+var _ambient_time := 0.0
+var _ambient_refresh := 0.0
 
 
 func _ready() -> void:
@@ -139,7 +144,13 @@ static func _read_custom(input: FileAccess, job: Dictionary) -> Dictionary:
 	return {"image": image}
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if _ambient_active and choice == "verto":
+		_ambient_time += delta
+		_ambient_refresh -= delta
+		if _ambient_refresh <= 0.0:
+			_ambient_refresh = 0.1
+			_material.energy_multiplier = brightness * (0.98 + 0.02 * sin(_ambient_time * TAU / 12.0))
 	if _builtin_requested:
 		var status := ResourceLoader.load_threaded_get_status(BELFAST)
 		if status == ResourceLoader.THREAD_LOAD_LOADED:
@@ -178,7 +189,7 @@ func _process(_delta: float) -> void:
 
 func _apply() -> void:
 	_material.panorama = (
-		_builtin if choice == "belfast" else (_custom if choice == "custom" else null)
+		VERTO_PANORAMA if choice == "verto" else (VERTO_SYDNEY if choice == "verto_sydney" else (_builtin if choice == "belfast" else (_custom if choice == "custom" else null)))
 	)
 	_material.energy_multiplier = brightness
 	loading = _thread != null or (choice == "belfast" and _builtin_requested)
@@ -187,6 +198,12 @@ func _apply() -> void:
 
 func ready_sky() -> Sky:
 	return sky if _material.panorama != null else null
+
+
+func set_ambient_active(active: bool) -> void:
+	_ambient_active = active
+	if not active:
+		_material.energy_multiplier = brightness
 
 
 func rotate_sky() -> void:

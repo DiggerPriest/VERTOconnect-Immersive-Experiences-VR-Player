@@ -969,7 +969,9 @@ func _rebuild_rows() -> void:
 				var selected := str(settings.get("background", "belfast"))
 				var backgrounds: Array = []
 				for option in [
-					["verto", "VERTO space", "image"],
+					["verto", "VERTO immersive environment", "image"],
+					["verto_sydney", "VERTO Sydney", "image"],
+					["verto_room", "VERTO studio", "image"],
 					["belfast", "Belfast sunset", "image"],
 					["dark", "Dark background", "circle"],
 					["passthrough", "Passthrough", "eyes"]
@@ -978,7 +980,7 @@ func _rebuild_rows() -> void:
 				if settings.get("background_custom", false):
 					backgrounds.append({"value": "custom", "label": "Custom panorama"})
 				rows.append(_choice_row("Background", "background", selected, backgrounds))
-				if selected in ["belfast", "custom"]:
+				if selected in ["verto", "verto_sydney", "belfast", "custom"]:
 					var directions: Array = []
 					for angle in range(0, 360, 45):
 						directions.append({"value": angle, "label": str(angle) + "°"})

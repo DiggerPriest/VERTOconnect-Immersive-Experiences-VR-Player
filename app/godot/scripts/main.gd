@@ -163,6 +163,7 @@ var settings_path: String:
 		_preferences.settings_path = value
 var background: Node
 var verto_room: Node3D
+var verto_sign: Node3D
 var view_follow: ViewFollow:
 	get:
 		return _presentation.view_follow
@@ -428,6 +429,9 @@ func _ready() -> void:
 	verto_room = preload("res://scripts/verto_room.gd").new()
 	verto_room.visible = false
 	add_child(verto_room)
+	verto_sign = preload("res://scripts/verto_sign.gd").new()
+	verto_sign.visible = false
+	add_child(verto_sign)
 	_update_background()
 	if Engine.has_singleton("QuestPlayer"):
 		platform_plugin = Engine.get_singleton("QuestPlayer")

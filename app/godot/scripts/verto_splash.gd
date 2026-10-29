@@ -28,12 +28,12 @@ func _ready() -> void:
 	for i in 8:
 		var dot := MeshInstance3D.new()
 		var sphere := SphereMesh.new()
-		sphere.radius = 0.014
-		sphere.height = 0.028
+		sphere.radius = 0.008
+		sphere.height = 0.016
 		dot.mesh = sphere
 		var angle := TAU * float(i) / 8.0
-		dot.position = Vector3(cos(angle) * 0.085, sin(angle) * 0.085, 0)
-		var mat := _material(Color(1.0, 1.0, 1.0, 0.35 + 0.65 * float(i) / 7.0), 104)
+		dot.position = Vector3(cos(angle) * 0.055, sin(angle) * 0.055, 0)
+		var mat := _material(Color(1.0, 1.0, 1.0, 0.22 + 0.52 * float(i) / 7.0), 104)
 		dot.material_override = mat
 		_spinner.add_child(dot)
 	_set_opacity(0.0)

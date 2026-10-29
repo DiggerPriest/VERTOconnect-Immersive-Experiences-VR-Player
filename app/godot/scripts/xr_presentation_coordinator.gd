@@ -831,8 +831,11 @@ func _update_background() -> void:
 	var wants_passthrough: bool = (
 		alpha or host.temporary_passthrough or host.background.choice == "passthrough"
 	)
+	host.background.set_ambient_active(not immersive and not wants_passthrough)
 	if host.verto_room:
-		host.verto_room.visible = host.background.choice == "verto" and not immersive and not wants_passthrough
+		host.verto_room.visible = host.background.choice == "verto_room" and not immersive and not wants_passthrough
+	if host.verto_sign:
+		host.verto_sign.visible = host.background.choice == "verto" and not immersive and not wants_passthrough
 	host.display.set_scenery(
 		null if immersive or wants_passthrough else host.background.ready_sky(), host.background.yaw
 	)

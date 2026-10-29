@@ -136,12 +136,22 @@ func _run() -> void:
 		"Saved dark background applies at startup"
 	)
 	main.background.select("verto")
-	check(main.verto_room.visible, "VERTO room is visible behind the menu")
+	check(main.background.ready_sky() != null and not main.verto_room.visible, "VERTO panorama appears behind the menu")
+	check(main.verto_sign.visible, "VERTO sign is visible in the trades environment")
+	main.background._process(9.0)
+	check(
+		main.background._ambient_active and main.background._material.energy_multiplier < main.background.brightness,
+		"VERTO panorama receives gentle ambient lighting"
+	)
+	main.background.select("verto_room")
+	check(main.verto_room.visible, "The original VERTO room remains available")
 	main.photo_active = true
 	main.photo.local_uri = "file:///test.jpg"
 	main.photo.geometry = main.photo.Geometry.Geometry.EQUIRECT_360
 	main._update_background()
 	check(not main.verto_room.visible, "VERTO room is hidden behind immersive media")
+	check(not main.verto_sign.visible, "VERTO sign is hidden behind immersive media")
+	check(not main.background._ambient_active, "Ambient lighting pauses during immersive media")
 	main.photo.local_uri = ""
 	main.photo_active = false
 	main._update_background()
