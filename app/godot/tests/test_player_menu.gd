@@ -360,6 +360,9 @@ func _run() -> void:
 		}
 	}
 	main._show_player_menu()
+	check(not menu._buttons.any(func(b): return b.target in [Menu.BROWSE, 110]), "Library and CC buttons are hidden by default")
+	menu.show_subtitle_control = true  # Exercise upstream subtitle behaviour independently.
+	menu.refresh()
 	check(
 		(
 			main._menu_state().source_size == "3840 x 1920"

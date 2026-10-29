@@ -884,6 +884,8 @@ func _run() -> void:
 	sample.save_png(sample_path)
 	menu.list_view = true
 	menu._on_media_list(0, JSON.stringify({"source": "local_thumbnail", "path": menu._local_path(), "uri": sample_uri, "file": ProjectSettings.globalize_path(sample_path)}))
+	check(menu.text_snapshot().contains("Movie") and not menu.text_snapshot().contains("Movie.mp4"), "Video list hides the extension")
+	check(str(menu.rows[1].uri) == sample_uri, "Hiding the extension leaves the playback URI unchanged")
 	check(Menu.Thumbnails.texture(sample_uri) != null, "Local thumbnail event stores the generated image")
 	check(menu._buttons.any(func(b): return b.target == Menu.ROW_BASE + 1 and b.node.get_child_count() >= 3), "Local list renders a generated thumbnail")
 	check(

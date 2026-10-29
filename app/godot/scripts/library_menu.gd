@@ -2009,9 +2009,12 @@ func _draw_rows() -> void:
 			if row.has("choices") or row.get("slider", false):
 				_setting_field(row, Vector2(0.17, row_top - k * _pitch()))
 				continue
+			var display_title := str(row.title)
+			if section == Section.LOCAL and row.get("kind", "") == "video":
+				display_title = display_title.get_basename()
 			_row_button(
 				ROW_BASE + k,
-				str(row.title),
+				display_title,
 				"" if row.get("about_info", false) else str(row.get("detail", "")),
 				str(row.get("icon", "video")),
 				Vector2(0.17, row_top - k * _pitch()),

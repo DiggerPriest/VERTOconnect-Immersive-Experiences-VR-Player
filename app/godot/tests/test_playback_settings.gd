@@ -81,6 +81,7 @@ func _run() -> void:
 	video._apply_geometry()
 	video.panel.visible = true
 	var menu := Menu.new()
+	menu.show_subtitle_control = true  # Exercise retained subtitle functionality independently.
 	menu.state_provider = main._menu_state
 	menu.adjustment_requested.connect(main._on_playback_adjustment)
 	menu.adjustment_committed.connect(main._save_playback_adjustments)

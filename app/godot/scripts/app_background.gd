@@ -189,7 +189,7 @@ func _process(delta: float) -> void:
 
 func _apply() -> void:
 	_material.panorama = (
-		VERTO_PANORAMA if choice == "verto" else (VERTO_SYDNEY if choice == "verto_sydney" else (_builtin if choice == "belfast" else (_custom if choice == "custom" else null)))
+		VERTO_SYDNEY if choice == "verto_sydney" else (_builtin if choice == "belfast" else (_custom if choice == "custom" else null))
 	)
 	_material.energy_multiplier = brightness
 	loading = _thread != null or (choice == "belfast" and _builtin_requested)

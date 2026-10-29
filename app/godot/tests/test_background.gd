@@ -136,7 +136,8 @@ func _run() -> void:
 		"Saved dark background applies at startup"
 	)
 	main.background.select("verto")
-	check(main.background.ready_sky() != null and not main.verto_room.visible, "VERTO panorama appears behind the menu")
+	check(main.background.ready_sky() == null and main.verto_workshop.visible and not main.verto_room.visible, "World-fixed workshop backdrop appears behind the menu")
+	check(main.verto_workshop.get_parent() == main and main.verto_workshop.get_child_count() == 1, "Workshop is world-fixed and has physical geometry")
 	check(main.verto_sign.visible, "VERTO sign is visible in the trades environment")
 	main.background._process(9.0)
 	check(
@@ -148,7 +149,10 @@ func _run() -> void:
 	main.photo_active = true
 	main.photo.local_uri = "file:///test.jpg"
 	main.photo.geometry = main.photo.Geometry.Geometry.EQUIRECT_360
+	main.background.select("verto")
 	main._update_background()
+	check(not main.verto_workshop.visible, "Workshop backdrop is hidden during immersive playback")
+	main.background.select("verto_room")
 	check(not main.verto_room.visible, "VERTO room is hidden behind immersive media")
 	check(not main.verto_sign.visible, "VERTO sign is hidden behind immersive media")
 	check(not main.background._ambient_active, "Ambient lighting pauses during immersive media")
