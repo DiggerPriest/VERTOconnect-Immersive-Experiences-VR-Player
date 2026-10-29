@@ -70,6 +70,9 @@ func _run() -> void:
 		trackers.append(tracker)
 	await process_frame
 	visuals.update_visibility(true)
+	check(not visuals.hands.left_hand.controller_gate.visible and not visuals.hands.right_hand.controller_gate.visible, "Controller models stay hidden by default")
+	visuals.show_controller_models = true  # Exercise upstream controller visibility separately.
+	visuals.update_visibility(true)
 	for hand in visuals.hands:
 		var entry: Dictionary = visuals.hands[hand]
 		check(
@@ -215,6 +218,7 @@ func playback_checks() -> void:
 	var app := PlaybackMain.new()
 	app.settings_path = "user://controller-visibility.cfg"
 	root.add_child(app)
+	app.input_visuals.show_controller_models = true  # Test controller-capable upstream path.
 	app.set_process(false)
 	app.video.set_process(false)
 	app.photo.set_process(false)

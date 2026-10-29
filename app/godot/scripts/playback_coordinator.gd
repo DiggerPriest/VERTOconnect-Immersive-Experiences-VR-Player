@@ -317,7 +317,7 @@ func _on_menu_action(operation: String) -> void:
 			host._recenter()
 		"zoom_in", "zoom_out", "zoom_reset":
 			if host.video.geometry != 0:
-				var amount: float = 0.1 if operation == "zoom_in" else (-0.1 if operation == "zoom_out" else -host.video.view_zoom)
+				var amount: float = -0.1 if operation == "zoom_in" else (0.1 if operation == "zoom_out" else host.video.ZOOM_LIMITS.y - host.video.view_zoom)
 				host.video.zoom_view(amount)
 				host.video._remember_mode()
 		"screen_curve":

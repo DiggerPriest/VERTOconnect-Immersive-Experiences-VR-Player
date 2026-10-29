@@ -1100,17 +1100,18 @@ func _run() -> void:
 	menu._toggle_popup("zoom")
 	check(menu._buttons.any(func(b): return b.target == Menu.ZOOM_OUT), "Zoom popup exposes hand-selectable controls")
 	menu._activate(Menu.ZOOM_RESET)
-	check(is_zero_approx(video.view_zoom), "Zoom popup resets immersive view")
+	check(is_equal_approx(video.view_zoom, video.ZOOM_LIMITS.y), "Zoom popup resets to fully zoomed out")
 	menu._activate(Menu.ZOOM_IN)
-	check(video.view_zoom > 0, "Zoom popup increases immersive zoom")
+	check(video.view_zoom < video.ZOOM_LIMITS.y, "Zoom popup increases immersive zoom")
 	menu._toggle_popup("")
-	video.zoom_view(video.ZOOM_LIMITS.y)
+	video.zoom_view(-0.2)
+	var before_zoom_out := video.view_zoom
 	main._on_menu_action("zoom_out")
-	check(video.view_zoom < video.ZOOM_LIMITS.y, "Menu zoom out moves immersive view")
+	check(video.view_zoom > before_zoom_out, "Menu zoom out moves immersive view outward")
 	main._on_menu_action("zoom_reset")
-	check(is_zero_approx(video.view_zoom), "Menu zoom reset restores the view")
+	check(is_equal_approx(video.view_zoom, video.ZOOM_LIMITS.y), "Menu zoom reset restores fully zoomed-out view")
 	main._on_menu_action("zoom_in")
-	check(video.view_zoom > 0.0, "Menu zoom in moves immersive view")
+	check(video.view_zoom < video.ZOOM_LIMITS.y, "Menu zoom in moves immersive view inward")
 	main._on_controller_button("primary_click", "right_hand")
 	check(
 		video.view_yaw == 0.0 and video.view_pitch == 0.0 and video.view_zoom == 0.0,
@@ -1276,6 +1277,7 @@ func _check_control_sticks(main: Node3D, video: Node3D, menu: Node3D, host: RefC
 	check(host.calls.size() == volume_calls, "Vertical stick cannot change system-controlled audio")
 	main._process_sticks(Vector2.ZERO, Vector2.ZERO, 0.1)
 	video.geometry = 1
+	video.view_zoom = 0.0  # Leave room for a positive stick movement before the limit.
 	var zoom: float = video.view_zoom
 	main._process_sticks(Vector2.ZERO, Vector2(0, .9), 0.2)
 	main._process_sticks(Vector2.ZERO, Vector2(0, .9), 0.2)

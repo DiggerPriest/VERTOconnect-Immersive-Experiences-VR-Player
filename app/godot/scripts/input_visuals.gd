@@ -7,6 +7,7 @@ const CONTROLLER_HIDE_SECONDS := 3.0
 const CONTROLLER_MOVE_METERS := 0.025
 const CONTROLLER_TURN_RADIANS := deg_to_rad(8.0)
 var use_runtime_models := true
+var show_controller_models := false  # This deployment uses hand tracking without controllers.
 var hands := {}
 var _material: ShaderMaterial
 
@@ -120,7 +121,7 @@ func update_visibility(
 			entry.idle_seconds = minf(
 				CONTROLLER_HIDE_SECONDS, float(entry.idle_seconds) + maxf(delta, 0.0)
 			)
-		entry.controller_gate.visible = tracked and entry.idle_seconds < CONTROLLER_HIDE_SECONDS
+		entry.controller_gate.visible = show_controller_models and tracked and entry.idle_seconds < CONTROLLER_HIDE_SECONDS
 		var ext_ready := entry.ext != null and _has_mesh(entry.ext)
 		var fb_ready: bool = entry.fb != null and entry.fb.has_render_model_node()
 		if entry.ext:

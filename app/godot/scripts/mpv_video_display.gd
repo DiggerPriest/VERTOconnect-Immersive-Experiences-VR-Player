@@ -613,8 +613,8 @@ func open_local(
 		_subtitle_surface.visible = false
 	_apply_geometry()  # Apply the projection before restoring zoom, so it is not reset later.
 	reset_view()  # Recenter for the current wearer, then restore this video's zoom.
-	if saved_sync.has("view_zoom"):
-		zoom_view(float(saved_sync.view_zoom))
+	if geometry != Geometry.Geometry.FLAT:
+		zoom_view(float(saved_sync.get("view_zoom", ZOOM_LIMITS.y)))
 	_audio_pending = id > 0
 	_sync_pending = id > 0
 	if id <= 0:
@@ -1633,6 +1633,7 @@ func _complete_layout() -> void:
 	_layout_pending = null
 	swap_eyes = chosen.swap
 	stereo_half = chosen.stereo_half
+	var previous_geometry := geometry
 	var tb := bool(chosen.stereo) and bool(chosen.top_bottom)
 	if int(chosen.geometry) != geometry or bool(chosen.stereo) != stereo_sbs or tb != top_bottom:
 		geometry = int(chosen.geometry)
@@ -1651,6 +1652,8 @@ func _complete_layout() -> void:
 		if revise:
 			_request_revision()
 	_apply_geometry()
+	if previous_geometry == Geometry.Geometry.FLAT and geometry != Geometry.Geometry.FLAT:
+		zoom_view(ZOOM_LIMITS.y - view_zoom)
 	Log.record(
 		"auto_layout",
 		{

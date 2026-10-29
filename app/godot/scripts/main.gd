@@ -1185,7 +1185,7 @@ func _update_status() -> void:
 	if not status_label.visible:
 		return
 	status_label.text = (
-		"Immivio - MPV\n%s | %s\nLeft Menu / Tab: player menu\nPoint with a controller and press trigger to select\nA,X / O: open file   Grip / Space: play,pause\nLeft click / P: projection   Right click: reset view\nLeft stick: seek 20s   Right stick / arrows: seek 10s\nB / R: recenter   Trigger / T: Alpha,background\nV: fixture"
+		"VERTOconnect VR Player\n%s | %s\nLeft Menu / Tab: player menu\nPoint with a controller and press trigger to select\nA,X / O: open file   Grip / Space: play,pause\nLeft click / P: projection   Right click: reset view\nLeft stick: seek 20s   Right stick / arrows: seek 10s\nB / R: recenter   Trigger / T: Alpha,background\nV: fixture"
 		% [mode, detail]
 	)
 	if video:

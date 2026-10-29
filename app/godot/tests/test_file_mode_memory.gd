@@ -317,6 +317,7 @@ func _run() -> void:
 		(
 			video.open_local("file:///v/clip.mp4", "clip.mp4")
 			and host.calls.back()[2] == false
+			and is_equal_approx(video.view_zoom, video.ZOOM_LIMITS.y)
 			and video._layout_pending != null
 		),
 		"Unmarked name waits for the frame"
