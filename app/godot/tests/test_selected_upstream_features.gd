@@ -51,6 +51,7 @@ func _run() -> void:
 		restored.lookup("local/a/video").is_empty(), "Clearing history clears persistent navigation"
 	)
 	var library := Library.new()
+	library.list_view = false  # This scenario explicitly switches from the grid to a list.
 	root.add_child(library)
 	library.set_process(false)
 	library.section = Library.Section.LOCAL

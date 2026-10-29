@@ -96,6 +96,7 @@ func _run() -> void:
 
 	# Library tiles use the picture; DLNA covers only come from the server's URL.
 	var menu := LibraryFixture.new()
+	menu.list_view = false  # Inspect the grid card's thumbnail texture.
 	root.add_child(menu)
 	menu.toggle()
 	check(

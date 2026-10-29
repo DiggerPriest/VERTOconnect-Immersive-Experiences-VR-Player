@@ -58,6 +58,7 @@ func _run() -> void:
 	preload("res://scripts/i18n.gd").use("en")
 	var platform := Platform.new()
 	var menu := Menu.new()
+	menu.list_view = false  # Exercise the media-server grid and its cover requests.
 	root.add_child(menu)
 	menu.attach_platform(platform)
 	menu.toggle()
