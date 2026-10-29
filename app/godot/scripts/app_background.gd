@@ -4,7 +4,7 @@ signal changed
 signal custom_saved(path: String, title: String, orientation: int)
 const Info := preload("res://scripts/image_info.gd")
 const BELFAST := "res://backgrounds/belfast_sunset_puresky.jpg"
-const VERTO_PANORAMA := preload("res://backgrounds/verto-trades-panorama.png")
+const VERTO_PANORAMA := preload("res://backgrounds/verto-workshop-360-8k.jpg")
 const VERTO_SYDNEY := preload("res://backgrounds/verto-training-panorama.png")
 const CHOICES := ["verto", "verto_sydney", "verto_room", "belfast", "dark", "passthrough", "custom"]
 var directory := "user://backgrounds"
@@ -189,7 +189,7 @@ func _process(delta: float) -> void:
 
 func _apply() -> void:
 	_material.panorama = (
-		VERTO_SYDNEY if choice == "verto_sydney" else (_builtin if choice == "belfast" else (_custom if choice == "custom" else null))
+		VERTO_PANORAMA if choice == "verto" else (VERTO_SYDNEY if choice == "verto_sydney" else (_builtin if choice == "belfast" else (_custom if choice == "custom" else null)))
 	)
 	_material.energy_multiplier = brightness
 	loading = _thread != null or (choice == "belfast" and _builtin_requested)

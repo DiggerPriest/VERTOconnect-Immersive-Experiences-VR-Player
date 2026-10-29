@@ -58,7 +58,8 @@ static func valid_mode(value: Variant) -> bool:
 			return false
 	if value.has("view_zoom"):
 		var zoom: Variant = value.view_zoom
-		if not (zoom is int or zoom is float) or not is_finite(float(zoom)) or float(zoom) < -0.5 or float(zoom) > 0.6:
+		# Vector2 stores the zoom limit at float32 precision (0.6000000238).
+		if not (zoom is int or zoom is float) or not is_finite(float(zoom)) or float(zoom) < -0.500001 or float(zoom) > 0.600001:
 			return false
 	for key in ["subtitle_delay_ms", "audio_delay_ms"]:
 		if (

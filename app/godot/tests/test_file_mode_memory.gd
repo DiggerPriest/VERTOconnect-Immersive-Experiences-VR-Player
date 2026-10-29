@@ -96,6 +96,11 @@ func _run() -> void:
 		"profile": "512x288"
 	}
 	var memory := Memory.new(test_path)
+	var zoom_mode := mode.duplicate(true)
+	zoom_mode.view_zoom = Vector2(-0.5, 0.6).y
+	check(Memory.valid_mode(zoom_mode), "Maximum zoom-out value survives float precision")
+	zoom_mode.view_zoom = 0.601
+	check(not Memory.valid_mode(zoom_mode), "Zoom values outside the supported range are rejected")
 	memory.load_saved()
 	check(
 		memory.sequence == 0 and memory.lookup(uri).is_empty(), "Missing preferences start safely"

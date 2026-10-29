@@ -430,9 +430,6 @@ func _ready() -> void:
 	verto_room = preload("res://scripts/verto_room.gd").new()
 	verto_room.visible = false
 	add_child(verto_room)
-	verto_workshop = preload("res://scripts/verto_workshop_backdrop.gd").new()
-	verto_workshop.visible = false
-	add_child(verto_workshop)
 	verto_sign = preload("res://scripts/verto_sign.gd").new()
 	verto_sign.visible = false
 	add_child(verto_sign)
