@@ -25,7 +25,7 @@ func _run() -> void:
 	splash.fade_seconds = 0.02
 	splash.finished.connect(func(): finished = true)
 	root.add_child(splash)
-	check(splash._materials.size() == 13 and splash._labels.size() == 4, "Opening contains title, backdrop and loading dots")
+	check(splash._materials.size() == 11 and splash._labels.size() == 4, "Opening contains black backdrop, title and loading dots")
 	await create_timer(0.06).timeout
 	check(not finished, "App does not open before the hold completes")
 	await create_timer(0.25).timeout

@@ -315,6 +315,10 @@ func _on_menu_action(operation: String) -> void:
 			host.video.set_fisheye_fov(int(operation.right(3)))
 		"recenter":
 			host._recenter()
+		"zoom_in", "zoom_out", "zoom_reset":
+			if host.video.geometry != 0:
+				var amount: float = 0.1 if operation == "zoom_in" else (-0.1 if operation == "zoom_out" else -host.video.view_zoom)
+				host.video.zoom_view(amount)
 		"screen_curve":
 			host.video.cycle_screen_curve()
 			host._save_screen()

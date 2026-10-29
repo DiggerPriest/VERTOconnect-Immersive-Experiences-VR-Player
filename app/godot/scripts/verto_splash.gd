@@ -14,8 +14,6 @@ var _spinner: Node3D
 func _ready() -> void:
 	position = Vector3(0, 0, -1.6)
 	_quad(Vector2(8.0, 8.0), Vector3.ZERO, Color.BLACK)
-	_quad(Vector2(5.4, 3.6), Vector3(0, 0, 0.006), Color.WHITE, preload("res://branding/vertoconnect-hero.png"))
-	_quad(Vector2(8.0, 8.0), Vector3(0, 0, 0.018), Color(0.0, 0.0, 0.0, 0.82))
 	_quad(Vector2(0.24, 0.21), Vector3(-0.56, 0.13, 0.025), Color.WHITE, preload("res://branding/vertoconnect-v.svg"))
 	_label("VERTO", Vector3(-0.14, 0.13, 0.02), 83, 0.0018, Color(1.0, 0.7686, 0.1608))
 	_label("connect", Vector3(0.39, 0.13, 0.02), 83, 0.0018, Color.WHITE)

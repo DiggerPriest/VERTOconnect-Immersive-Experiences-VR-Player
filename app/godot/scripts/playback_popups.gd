@@ -76,6 +76,11 @@ func _button(
 
 func draw(key: String) -> void:
 	match key:
+		"zoom":
+			var y := _panel("Video zoom", 0.25)
+			_button(menu.ZOOM_OUT, "Zoom out", Vector2(-0.35, y), 0.30)
+			_button(menu.ZOOM_RESET, "Reset", Vector2(0, y), 0.30)
+			_button(menu.ZOOM_IN, "Zoom in", Vector2(0.35, y), 0.30)
 		"screen":
 			var y := _panel("Screen layout", 0.82)
 			var presets: Array = []
@@ -369,7 +374,9 @@ func action(target: int) -> bool:
 	var key: String = menu._quick_open
 	var adjustment := ""
 	var value: Variant = 0.0
-	if key == "screen" and target in [221, 222]:
+	if key == "zoom" and target in [menu.ZOOM_OUT, menu.ZOOM_RESET, menu.ZOOM_IN]:
+		menu.action_requested.emit("zoom_out" if target == menu.ZOOM_OUT else ("zoom_in" if target == menu.ZOOM_IN else "zoom_reset"))
+	elif key == "screen" and target in [221, 222]:
 		adjustment = "screen_save_default" if target == 221 else "screen_grid"
 		value = true
 	elif key == "speed" and target == menu.SPEED_RESET:

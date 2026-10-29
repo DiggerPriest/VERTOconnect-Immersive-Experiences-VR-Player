@@ -57,6 +57,10 @@ const SUBTITLE_POSITION := 292
 const PLAYBACK_SETTINGS := 470
 const SYNC_SETTINGS := 490
 const QUEUE_SETTINGS := 491
+const QUICK_ZOOM := 499
+const ZOOM_OUT := 502
+const ZOOM_RESET := 503
+const ZOOM_IN := 504
 const SUBTITLE_LOAD := 492
 const SUBTITLE_FORGET := 493
 const SUBTITLE_DELAY_RESET := 494
@@ -81,6 +85,7 @@ const POPUP_TARGETS := {
 	IPD_SETTINGS: "ipd",
 	SYNC_SETTINGS: "sync",
 	QUEUE_SETTINGS: "queue",
+	QUICK_ZOOM: "zoom",
 	12: "info",
 	MODE: "mode",
 	110: "subtitles",
@@ -597,6 +602,7 @@ func _draw_bar() -> void:
 		{"target": BROWSE, "icon": "folder", "tip": "Library", "enabled": has_video},
 		{"target": 110, "icon": "subtitle", "tip": "Subtitles", "enabled": _enabled("subtitles")},
 		{"target": MODE, "icon": "view_mode", "tip": "Video mode", "enabled": has_video},
+		{"target": QUICK_ZOOM, "icon": "zoom", "tip": "Video zoom", "enabled": has_video and int(_state.get("geometry", 0)) != 0},
 		{"target": QUICK_SPEED, "icon": "time", "tip": "Playback speed", "enabled": has_video},
 		{"target": QUICK_COLOR, "icon": "adjust", "tip": "Color grading", "enabled": has_video},
 		{"target": IPD_SETTINGS, "icon": "eyes", "tip": "IPD", "enabled": _enabled("stereo_view")},

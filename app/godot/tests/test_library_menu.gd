@@ -877,6 +877,15 @@ func _run() -> void:
 		{"id": "photo", "title": "Photo.jpg", "uri": "file:///Photo.jpg", "kind": "image"}
 	]
 	menu.refresh()
+	var sample_uri := "file:///Movie.mp4"
+	var sample_path := "user://local-thumbnail-test.png"
+	var sample := Image.create(32, 18, false, Image.FORMAT_RGB8)
+	sample.fill(Color.RED)
+	sample.save_png(sample_path)
+	menu.list_view = true
+	menu._on_media_list(0, JSON.stringify({"source": "local_thumbnail", "path": menu._local_path(), "uri": sample_uri, "file": ProjectSettings.globalize_path(sample_path)}))
+	check(Menu.Thumbnails.texture(sample_uri) != null, "Local thumbnail event stores the generated image")
+	check(menu._buttons.any(func(b): return b.target == Menu.ROW_BASE + 1 and b.node.get_child_count() >= 3), "Local list renders a generated thumbnail")
 	check(
 		menu.rows.size() == 2 and menu.video_queue().size() == 1,
 		"Managed library shows folders and videos but hides images"
