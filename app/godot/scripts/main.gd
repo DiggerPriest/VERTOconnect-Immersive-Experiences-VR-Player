@@ -362,6 +362,8 @@ func _ready() -> void:
 	if Engine.has_singleton("QuestPlayer"):
 		var plugin := Engine.get_singleton("QuestPlayer")
 		recent_menu.attach_platform(plugin)
+		if PlatformMethods.supports(plugin, "media_local_storage_root"):
+			recent_menu.start_managed_files(str(plugin.media_local_storage_root()))
 		plugin.connect("mpv_debug_command", _on_display_debug_command)
 		plugin.set_mpv_output_width(
 			Quality.output_width(Quality.load_output_choice(settings), low_end_gpu)

@@ -5,6 +5,7 @@ import android.opengl.EGL14
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
+import android.os.Environment
 import android.text.format.DateFormat
 import androidx.media3.common.util.UnstableApi
 import android.util.Log
@@ -320,6 +321,10 @@ class QuestPlayerPlugin(godot: Godot) : GodotPlugin(godot) {
         if (width in 0..8192) mpv.outputWidthCap = width
     }
     // Library sources: each returns a request id; the result arrives as media_list(id, json).
+    /** The shared-storage root for the current Android user/profile. */
+    @UsedByGodot
+    fun media_local_storage_root(): String = Environment.getExternalStorageDirectory().absolutePath
+
     /** Headset storage: path "" lists the volumes, otherwise one folder's subfolders and videos. */
     @UsedByGodot
     fun media_local_browse(path: String): Int {

@@ -852,6 +852,15 @@ func _run() -> void:
 		menu.text_snapshot().contains("About") and not menu.text_snapshot().contains("关于"),
 		"English menu"
 	)
+	menu.start_managed_files("/storage/emulated/10")
+	check(
+		menu.section == Menu.Section.LOCAL
+		and menu._local_path() == "/storage/emulated/10/Managed files"
+		and menu._local_stack.size() == 2,
+		"Managed files starts in the current profile's shared-storage folder"
+	)
+	menu.start_managed_files("")
+	check(menu._local_path() == "/storage/emulated/10/Managed files", "Invalid root is ignored")
 	print("library menu checks=%d failures=%d" % [checks, failures.size()])
 	for failure in failures:
 		push_error(failure)

@@ -15,6 +15,12 @@ current video and putting it back on restarts that same video at the beginning.
 The saved projection and the queue remain intact. This requires real-device
 validation; opening a system menu alone must not count as headset removal.
 
+On Android the library opens the current profile's shared-storage
+`Managed files` directory. Device and Android permission policies still apply;
+if it cannot be read, use the local storage access controls or navigate to a
+different folder. Settings choice taps allow modest pointer movement while
+retaining same-control release and scroll cancellation.
+
 Use the Android tag workflow to build the APK. Future updates require the same
 release signing key; its repository secrets and the local backup are not part of
 this source tree.

@@ -316,6 +316,17 @@ func attach_platform(value: Object) -> void:
 	_cache_usage = null
 	_request_cache_usage()
 
+## Prefer the organization's managed video folder on startup. Browsing still
+## uses the normal local access checks and the user can navigate elsewhere.
+func start_managed_files(root: String) -> void:
+	if root.is_empty() or not root.begins_with("/"):
+		return
+	section = Section.LOCAL
+	_local_stack = [
+		{"id": root, "title": "Internal storage", "volume": true, "removable": false},
+		{"id": root.path_join("Managed files"), "title": "Managed files", "container": true}
+	]
+
 
 func capture_envelope() -> Rect2:
 	# Browsing and ordinary settings share a projection from the first frame.

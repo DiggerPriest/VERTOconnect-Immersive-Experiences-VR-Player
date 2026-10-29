@@ -6,6 +6,8 @@ var sliders: Dictionary = {}
 const BASE := 8000
 const POPUP_ROWS := 6
 const PITCH := 0.071
+## Allow small hand tremors while still requiring release on the same control.
+const TAP_MOVEMENT_METRES := 0.035
 var menu: Node3D
 var targets: Dictionary = {}
 var capture: Dictionary = {}
@@ -442,7 +444,7 @@ func update(hand: String, origin: Vector3, direction: Vector3, tracked: bool) ->
 		_preview_slider(point)
 		return
 	var delta: Vector2 = Vector2(point.x - capture.point.x, point.y - capture.point.y)
-	if delta.length() > 0.018:
+	if delta.length() > TAP_MOVEMENT_METRES:
 		capture.moved = true
 	if capture.moved and not opened.is_empty():
 		var next := clampi(
@@ -483,7 +485,7 @@ func release(hand: String, origin: Vector3, direction: Vector3, tracked: bool) -
 		or targets.get(request.target, {}) != request.item
 	):
 		return
-	if Vector2(hit.point.x - request.point.x, hit.point.y - request.point.y).length() > 0.018:
+	if Vector2(hit.point.x - request.point.x, hit.point.y - request.point.y).length() > TAP_MOVEMENT_METRES:
 		return
 	action(int(request.target))
 

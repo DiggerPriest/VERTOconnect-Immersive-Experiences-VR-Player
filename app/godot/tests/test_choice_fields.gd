@@ -82,10 +82,12 @@ func _run() -> void:
 	)
 	menu.release_pointer("right_hand", point, -menu.global_basis.z, true)
 	check(menu.choices.opened.is_empty(), "Other hand cannot open a captured dropdown")
-	menu.release_pointer("left_hand", point, -menu.global_basis.z, true)
+	var hand_jitter := point + menu.global_basis.x * 0.02
+	menu.update_pointer("left_hand", hand_jitter, -menu.global_basis.z, true)
+	menu.release_pointer("left_hand", hand_jitter, -menu.global_basis.z, true)
 	check(
 		menu.choices.opened == "language" and menu.choices.popup.choices.size() == 5,
-		"Opening reveals the five languages"
+		"A small hand movement still opens the five languages"
 	)
 	menu.stick_scroll(-1.0, 0.5)
 	check(events.is_empty(), "Stick scrolling never chooses a language")
