@@ -425,7 +425,7 @@ def android_identity(build_type=None):
             "application_id": "com.northboundwisdom.immivio.dev",
             "application_label": "Immivio Dev",
         }
-    return {"application_id": "com.diggerpriest.immivio360", "application_label": "Immivio 360"}
+    return {"application_id": "com.diggerpriest.immivio360", "application_label": "VERTOconnect VR Player"}
 
 
 @contextmanager

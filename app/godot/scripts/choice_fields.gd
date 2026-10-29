@@ -460,6 +460,12 @@ func update(hand: String, origin: Vector3, direction: Vector3, tracked: bool) ->
 func _capture_point(origin: Vector3, direction: Vector3) -> Variant:
 	if not origin.is_finite() or not direction.is_finite() or direction.length_squared() < 0.000001:
 		return null
+	if (
+		menu.xr_surface
+		and (menu.xr_surface.native_supported or menu.xr_surface.get("scene_curved") == true)
+		and (menu.xr_surface.active_menu == menu or (menu.xr_surface.has_method("captures_menu") and menu.xr_surface.captures_menu(menu)))
+	):
+		return menu._plane_point(origin, direction)
 	var inverse: Transform3D = menu.global_transform.affine_inverse()
 	var start: Vector3 = inverse * origin
 	var delta: Vector3 = inverse.basis * direction.normalized()

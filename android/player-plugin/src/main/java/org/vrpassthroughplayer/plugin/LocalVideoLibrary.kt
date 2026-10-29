@@ -8,6 +8,8 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.graphics.Bitmap
+import android.media.MediaMetadataRetriever
 import android.os.Build
 import android.os.Environment
 import android.os.storage.StorageManager
@@ -17,6 +19,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
+import java.security.MessageDigest
 
 /** The headset's own storage as folders, like a file manager: storage volumes (internal, USB) at
  * the top, then folders and media read straight from the disk. The media index (MediaStore) is
@@ -28,6 +32,8 @@ internal class LocalVideoLibrary(
     private val emit: (Int, String) -> Unit,
 ) {
     private val worker = Executors.newSingleThreadExecutor { Thread(it, "QuestLocalLibrary") }
+    private val thumbnailWorker = Executors.newSingleThreadExecutor { Thread(it, "QuestVideoThumbnails") }
+    private val thumbnailGeneration = AtomicInteger()
     private val waiting = mutableListOf<Pair<Int, String>>() // main thread only
     private val permission = if (Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_VIDEO
     else Manifest.permission.READ_EXTERNAL_STORAGE
@@ -135,6 +141,7 @@ internal class LocalVideoLibrary(
 
     /** Main thread. path "" lists the storage volumes. Asks for the media permission once if needed. */
     fun browse(id: Int, path: String) {
+        thumbnailGeneration.incrementAndGet()
         val activity = host() ?: return emit(id, state("error", "ACTIVITY_UNAVAILABLE"))
         watchStorage(activity.applicationContext)
         if (grantWaiting || waiting.isNotEmpty()) {
@@ -235,6 +242,7 @@ internal class LocalVideoLibrary(
     private fun list(id: Int, path: String) {
         val context =
             host()?.applicationContext ?: return emit(id, state("error", "ACTIVITY_UNAVAILABLE"))
+        val generation = thumbnailGeneration.get()
         worker.execute {
             try {
                 val volumes = LocalStorageVolumes.roots(context)
@@ -252,9 +260,53 @@ internal class LocalVideoLibrary(
                         .put("all_files", allFiles()).put("entries", entries)
                         .put("volumes", volumes).toString()
                 )
+                if (path.isNotEmpty() && generation == thumbnailGeneration.get())
+                    queueThumbnails(context, path, entries, generation)
             } catch (error: Throwable) {
                 emit(id, state("error", error.message ?: "LOCAL_LIST_FAILED"))
             }
+        }
+    }
+
+    /** Decode thumbnails away from browsing and playback; failures leave the existing icon. */
+    private fun queueThumbnails(context: Context, path: String, entries: JSONArray, generation: Int) {
+        val videos = (0 until entries.length()).map { entries.getJSONObject(it) }
+            .filter { !it.optBoolean("container") && it.optString("kind") == "video" }
+            .map { it.optString("uri") to it.optString("id") }
+        thumbnailWorker.execute {
+            val cache = File(context.cacheDir, "local-video-thumbnails")
+            cache.mkdirs()
+            for ((uri, filename) in videos) {
+                if (closed || generation != thumbnailGeneration.get()) break
+                val file = File(filename)
+                val fingerprint = "$uri:${file.length()}:${file.lastModified()}"
+                val hash = MessageDigest.getInstance("SHA-256").digest(fingerprint.toByteArray())
+                    .joinToString("") { "%02x".format(it) }
+                val output = File(cache, "$hash.jpg")
+                if (!output.isFile) {
+                    val retriever = MediaMetadataRetriever()
+                    try {
+                        retriever.setDataSource(filename)
+                        val frame = if (Build.VERSION.SDK_INT >= 27)
+                            retriever.getScaledFrameAtTime(1_000_000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, 320, 180)
+                        else null
+                        if (frame != null) {
+                            output.outputStream().use { frame.compress(Bitmap.CompressFormat.JPEG, 80, it) }
+                            frame.recycle()
+                        }
+                    } catch (_: Exception) {
+                        output.delete()
+                    } finally {
+                        runCatching { retriever.release() }
+                    }
+                }
+                if (output.isFile && !closed && generation == thumbnailGeneration.get()) {
+                    emit(0, JSONObject().put("source", "local_thumbnail").put("path", path)
+                        .put("uri", uri).put("file", output.absolutePath).toString())
+                }
+            }
+            // Bound the native cache; Godot maintains its own thumbnail cache separately.
+            cache.listFiles()?.sortedByDescending { it.lastModified() }?.drop(256)?.forEach { it.delete() }
         }
     }
 
@@ -414,6 +466,7 @@ internal class LocalVideoLibrary(
         if (observerRegistered) observerContext?.let { runCatching { it.unregisterReceiver(observer) } }
         observerContext = null; observerRegistered = false
         worker.shutdownNow()
+        thumbnailWorker.shutdownNow()
     }
 
     // Android 10 never loads the API 30 callback class.

@@ -89,6 +89,24 @@ func _run() -> void:
 	menu.xr_surface = null
 	compositor.free()
 	menu.free()
+	var library := preload("res://scripts/library_menu.gd").new()
+	root.add_child(library)
+	library.visible = true
+	library.curve_radius = radius
+	var curved_surface := Surface.new()
+	root.add_child(curved_surface)
+	curved_surface.active_menu = library
+	curved_surface.scene_curved = true
+	curved_surface.surface_rect = rect
+	library.xr_surface = curved_surface
+	var ray_origin := library.to_global(Vector3(0, 0, 1))
+	var ray_point := library.to_global(Vector3(sin(.8 / radius) * radius, .2, (1 - cos(.8 / radius)) * radius))
+	library.choices.capture = {"point": Vector3(.8, .2, 0)}
+	var captured: Variant = library.choices._capture_point(ray_origin, ray_point - ray_origin)
+	check(captured != null and captured.distance_to(Vector3(.8, .2, 0)) < .0001, "Choice capture uses curved canvas coordinates")
+	library.xr_surface = null
+	curved_surface.free()
+	library.free()
 	for failure in failures:
 		push_error(failure)
 	print("Curved menu rays: %d checks, %d failures" % [checks, failures.size()])

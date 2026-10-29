@@ -333,7 +333,7 @@ func _ready() -> void:
 	display.set_foveation(int(settings.get_value("video", "foveation", 0)))
 	recent_menu = LibraryMenu.new()
 	recent_menu.catalog = video.recent_files
-	recent_menu.list_view = bool(settings.get_value("library", "list_view", false))
+	recent_menu.list_view = bool(settings.get_value("library", "list_view", true))
 	recent_menu.browse_memory.configure(
 		bool(settings.get_value("library", "browse_memory", true)), video.history_enabled
 	)

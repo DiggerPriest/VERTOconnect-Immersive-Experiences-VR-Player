@@ -300,6 +300,8 @@ func _run() -> void:
 	preload("res://scripts/i18n.gd").use("en")  # text checks are written in English
 	var platform := FakePlatform.new()
 	var menu := Menu.new()
+	check(menu.list_view, "Library starts in list view")
+	menu.list_view = false  # Existing grid and scrolling scenarios below exercise grid mode.
 	menu.catalog = Catalog.new()
 	menu.settings_provider = func():
 		return {
@@ -603,34 +605,34 @@ func _run() -> void:
 	)
 	check(
 		(
-			about_text.contains("Immivio")
+			about_text.contains("VERTOconnect VR Player")
 			and not about_text.contains("ffskyteam@gmail.com")
 			and not about_text.contains("FFSky Studio")
 			and not about_text.contains("https://thru3d.com")
-			and about_text.contains("https://northboundwisdom.github.io/immivio/")
-			and about_text.contains("https://github.com/NorthBoundWisdom/immivio")
+			and about_text.contains("https://vertoconnect.au/")
+			and about_text.contains("https://github.com/DiggerPriest/immivio")
 		),
 		"About brand and support"
 	)
 	menu._activate(Menu.ROW_BASE + 3)
 	check(
 		(
-			menu.rows[0].title == "Belfast Sunset (Pure Sky)"
-			and menu.rows[0].detail.contains("Poly Haven · CC0 1.0")
-			and menu.rows[0].detail.contains("Dimitrios Savva / Greg Zaal / Jarod Guest")
-			and menu.rows[1].title == "Godot"
+			menu.rows[0].title == "Immivio"
+			and menu.rows[1].title == "Belfast Sunset (Pure Sky)"
+			and menu.rows[1].detail.contains("Poly Haven · CC0 1.0")
+			and menu.rows[1].detail.contains("Dimitrios Savva / Greg Zaal / Jarod Guest")
 		),
 		"One panorama entry contains its source, license and all authors"
 	)
 	var credit_detail: Label3D = (
 		menu
 		. _buttons
-		. filter(func(button): return button.target == Menu.ROW_BASE)[0]
+		. filter(func(button): return button.target == Menu.ROW_BASE + 1)[0]
 		. node
 		. get_child(2)
 	)
 	check(
-		credit_detail.text == menu.rows[0].detail,
+		credit_detail.text == menu.rows[1].detail,
 		"Combined panorama attribution remains visible without truncation"
 	)
 	var credit_origin := menu.to_global(Vector3(0.1, Menu.LIST_TOP, 1))
@@ -655,7 +657,7 @@ func _run() -> void:
 	)
 	menu._activate(Menu.ABOUT_HOME)
 	check(
-		menu.rows[0].title == "Immivio" and menu.scroll == 0, "Return from credits resets scrolling"
+		menu.rows[0].title == "VERTOconnect VR Player" and menu.scroll == 0, "Return from credits resets scrolling"
 	)
 	# Long lists scroll with the stick (whole rows) and the scrollbar track; no pages.
 	menu._activate(Menu.NAV_BASE + Menu.Section.LOCAL)

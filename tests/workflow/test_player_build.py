@@ -227,7 +227,7 @@ class VariantIdentityBoundaries(unittest.TestCase):
                 with builder.variant_export_presets() as identity:
                     self.assertEqual(identity["application_id"], "com.diggerpriest.immivio360")
                     self.assertEqual(
-                        path.read_text().count('package/name="Immivio 360"'), 3
+                        path.read_text().count('package/name="VERTOconnect VR Player"'), 3
                     )
                     raise RuntimeError("simulated export failure")
             self.assertEqual(path.read_bytes(), original)

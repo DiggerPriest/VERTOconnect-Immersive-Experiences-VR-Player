@@ -11,7 +11,7 @@ var queue_add_mode := false
 signal layout_changed
 const VIEW_MODE := 90
 const BROWSER_SIZE := 91
-var list_view := false
+var list_view := true
 var compact := false
 var playback_browser := false
 const BrowseMemory := preload("res://scripts/directory_browse_memory.gd")
@@ -1028,6 +1028,7 @@ func _rebuild_rows() -> void:
 							)
 				elif _about_page == 2:
 					for credit in [
+						["Immivio", "Original open-source project by NorthBoundWisdom"],
 						[
 							"Belfast Sunset (Pure Sky)",
 							"Poly Haven · CC0 1.0 · Dimitrios Savva / Greg Zaal / Jarod Guest"
@@ -1044,16 +1045,16 @@ func _rebuild_rows() -> void:
 					]:
 						rows.append(_about_info(I18n.t(credit[0]), I18n.t(credit[1])))
 				else:
-					rows.append(_about_info("Immivio", str(settings.get("version", ""))))
+					rows.append(_about_info("VERTOconnect VR Player", str(settings.get("version", ""))))
 					rows.append(
 						_about_info(
 							I18n.t("Official website"),
-							"https://northboundwisdom.github.io/immivio/"
+							"https://vertoconnect.au/"
 						)
 					)
 					rows.append(
 						_about_info(
-							I18n.t("Source code"), "https://github.com/NorthBoundWisdom/immivio"
+							I18n.t("Source code"), "https://github.com/DiggerPriest/immivio"
 						)
 					)
 					rows.append({"title": I18n.t("Credits"), "icon": "info", "about_page": 2})
@@ -2016,6 +2017,14 @@ func _draw_rows() -> void:
 				Vector2(0.17, row_top - k * _pitch()),
 				bool(row.get("selected", false))
 			)
+			if section == Section.LOCAL and not row.get("container", false):
+				var thumbnail := _picture(row)
+				if thumbnail:
+					var preview := _quad(Vector2(0.072, 0.052), Vector3(-0.565, 0, 0.008), Color.WHITE, 14)
+					var preview_material := _material(Color.WHITE, 14)
+					preview_material.albedo_texture = thumbnail
+					preview.material_override = preview_material
+					_buttons.back().node.add_child(preview)
 			if bool(row.get("about_info", false)):
 				_buttons.back().enabled = false
 				_buttons.back()["keep_visible"] = true

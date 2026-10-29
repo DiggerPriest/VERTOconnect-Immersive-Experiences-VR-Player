@@ -42,6 +42,18 @@ func _on_media_list(id: int, payload: String) -> void:
 	# Unsolicited store notifications also work when Quest does not pause/resume VR.
 	if id == 0:
 		var event: Variant = JSON.parse_string(payload)
+		if event is Dictionary and event.get("source") == "local_thumbnail":
+			if str(event.get("path", "")) != host._local_path():
+				return
+			var uri := str(event.get("uri", ""))
+			if not host._local_entries.any(func(entry): return str(entry.get("uri", "")) == uri):
+				return
+			var image := Image.load_from_file(str(event.get("file", "")))
+			if image and not image.is_empty():
+				preload("res://scripts/thumbnail_cache.gd").store(uri, image)
+				if host.visible and host.section == Section.LOCAL and not host.has_pointer_capture():
+					host.refresh()
+			return
 		if event is Dictionary and event.get("source") == "local_storage":
 			if event.get("state") == "error":
 				if host.section == Section.LOCAL:
