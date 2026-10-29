@@ -54,6 +54,10 @@ HAND_BUFFER_PINS = {
     "app/godot/models/hands/LeftHandHumanoid.bin": "05f96e5aae870c8f2fde8a1fea337b060c7fde3e659b124a5ed979f0ffa1222a",
     "app/godot/models/hands/RightHandHumanoid.bin": "89468a6868afbd6a9d5e545e7fdd5dadd7d7abab6d4389d8acc14a7804901e41",
 }
+# Bundled Inter font, distributed with its SIL Open Font License notice.
+FONT_PINS = {
+    "app/godot/branding/fonts/Inter.ttf": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031",
+}
 PATTERNS = {
     "private machine path": re.compile(
         r"(?i)(?:[CG]:[/\\]+(?:Users[/\\]+dennis|devtools|GIT|code[/\\]+VRPassthroughPlayer)|/mnt/"
@@ -85,6 +89,9 @@ def check_files(files):
         if path.is_absolute() or ".." in path.parts or "\\" in name or ":" in name:
             errors.append(f"{name}: unsafe path")
         approved_mesh = name in HAND_BUFFER_PINS
+        approved_font = name in FONT_PINS
+        if approved_font and hashlib.sha256(data).hexdigest() != FONT_PINS[name]:
+            errors.append(f"{name}: font differs from pinned asset")
         if approved_mesh and (
             len(data) != 38584
             or hashlib.sha256(data).hexdigest() != HAND_BUFFER_PINS[name]
@@ -121,7 +128,7 @@ def check_files(files):
             if (
                 path.suffix.lower()
                 not in {".png", ".jpg", ".jpeg", ".webp", ".mp4", ".jar"}
-                and not approved_mesh
+                and not approved_mesh and not approved_font
             ):
                 errors.append(f"{name}: unreviewed binary type")
             continue
@@ -150,6 +157,8 @@ def check_files(files):
                         errors.append(f"{gltf}: unexpected hand buffer reference")
                 except (ValueError, KeyError, TypeError):
                     errors.append(f"{gltf}: invalid hand buffer contract")
+    if FONT_PINS.keys() & files.keys() and "app/godot/branding/fonts/Inter-OFL.txt" not in files:
+        errors.append("app/godot/branding/fonts/Inter-OFL.txt: font license missing")
     required = {
         "LICENSE",
         "README.md",
