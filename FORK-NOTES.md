@@ -4,7 +4,8 @@ This is a modified build of [Immivio](https://github.com/NorthBoundWisdom/immivi
 based on v0.9.4 and distributed under its GPL-3.0 license.
 
 For the intended headset library, videos with no recognized projection or stereo
-information default to 360-degree monoscopic playback. Recognized format tags,
+information default to 360-degree monoscopic playback. A mono/2D marker without
+a projection also uses 360 degrees. Recognized projection/stereo format tags,
 stereo metadata, mode lock and saved per-video choices still take precedence.
 The application has its own package ID and signing key so it can be installed
 alongside the original Immivio.

@@ -125,7 +125,12 @@ static func complete(
 	# Our headset library is primarily 360 mono. When there is no explicit
 	# format information, use that known library default instead of guessing
 	# from frame dimensions, which can represent several different formats.
-	if not stated.has("geometry") and not stated.has("stereo") and not sbs and not tb:
+	if (
+		not stated.has("geometry")
+		and not bool(stated.get("stereo", false))
+		and not sbs
+		and not tb
+	):
 		return {
 			"geometry": Geometry.Geometry.EQUIRECT_360,
 			"stereo": false,

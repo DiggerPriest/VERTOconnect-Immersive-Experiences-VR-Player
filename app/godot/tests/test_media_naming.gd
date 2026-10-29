@@ -144,14 +144,18 @@ func _initialize() -> void:
 		(
 			Naming.complete({"stereo": false}, 7680, 3840)
 			== {
-				"geometry": flat,
+				"geometry": full,
 				"stereo": false,
 				"top_bottom": false,
 				"stereo_half": false,
 				"swap": false
 			}
 		),
-		"Mono 2:1 does not imply 360"
+		"Mono without a projection defaults to 360"
+	)
+	check(
+		Naming.complete(Naming.from_name("clip_2D.mp4"), 7680, 3840).geometry == full,
+		"2D filename without projection uses the 360 mono default"
 	)
 	check(
 		(
