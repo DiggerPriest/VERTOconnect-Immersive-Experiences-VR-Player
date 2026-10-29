@@ -56,6 +56,10 @@ static func valid_mode(value: Variant) -> bool:
 	for name in ["top_bottom", "stereo_half"]:
 		if value.has(name) and not value[name] is bool:
 			return false
+	if value.has("view_zoom"):
+		var zoom: Variant = value.view_zoom
+		if not (zoom is int or zoom is float) or not is_finite(float(zoom)) or float(zoom) < -0.5 or float(zoom) > 0.6:
+			return false
 	for key in ["subtitle_delay_ms", "audio_delay_ms"]:
 		if (
 			value.has(key)

@@ -611,7 +611,10 @@ func open_local(
 	subtitles.clear(true)
 	if _subtitle_surface:
 		_subtitle_surface.visible = false
-	reset_view()  # every video starts straight ahead at its natural size
+	_apply_geometry()  # Apply the projection before restoring zoom, so it is not reset later.
+	reset_view()  # Recenter for the current wearer, then restore this video's zoom.
+	if saved_sync.has("view_zoom"):
+		zoom_view(float(saved_sync.view_zoom))
 	_audio_pending = id > 0
 	_sync_pending = id > 0
 	if id <= 0:
@@ -1695,6 +1698,7 @@ func _remember_mode() -> void:
 		"top_bottom": stereo_sbs and top_bottom,
 		"stereo_half": stereo_sbs and stereo_half,
 		"fisheye_fov": fisheye_fov,
+		"view_zoom": view_zoom,
 		"subtitle_delay_ms": subtitle_delay_ms,
 		"audio_delay_ms": audio_delay_ms,
 		"external_subtitle_uri": external_subtitle_uri

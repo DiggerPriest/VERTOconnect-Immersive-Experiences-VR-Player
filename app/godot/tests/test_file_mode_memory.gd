@@ -227,12 +227,16 @@ func _run() -> void:
 	var video := Video.new()
 	root.add_child(video)
 	video.set_process(false)
+	newer["view_zoom"] = 0.3
 	video.mode_memory = Memory.new(test_path.path_join("integration"))
 	video.mode_memory.remember(uri, newer)
 	video.mode_memory.save()
 	var host := Host.new()
 	video.platform = host
 	check(video.open_local(uri, "Selected video"), "Restored source opens")
+	check(is_equal_approx(video.view_zoom, 0.3), "Saved video zoom is restored on open")
+	video._apply_geometry()
+	check(is_equal_approx(video.view_zoom, 0.3), "Applying the first frame keeps the saved zoom")
 	# Projection, stereo and eye order are restored; Alpha always starts off (player controls switch it on).
 	check(
 		(
@@ -249,6 +253,12 @@ func _run() -> void:
 	)
 	video._waiting_first = false
 	video.media.generation = 4
+	video.zoom_view(-0.1)
+	video._remember_mode()
+	var zoom_saved := Memory.new(test_path.path_join("integration"))
+	zoom_saved.load_saved()
+	check(is_equal_approx(float(zoom_saved.lookup(uri).get("view_zoom", -1)), 0.2), "Changed zoom survives a memory reload")
+	check(zoom_saved.lookup("file:///different-video.mp4").is_empty(), "Zoom is stored per video")
 	check(
 		(
 			video.toggle_eye_order()
