@@ -1,5 +1,5 @@
 extends RefCounted
-## Playback mode from the file name, then from the frame's shape. Markers follow
+## Playback mode from the file name and metadata, with a 360 mono library default. Markers follow
 ## PTMediaServer utils/vr_naming.py (DeoVR / SKYBOX / HereSphere conventions): any case, any
 ## order, separated by _ - space . or brackets. EAC cubemaps are not supported by this player,
 ## so their markers are ignored rather than shown wrongly.
@@ -102,10 +102,9 @@ static func _lens_fov(name: String) -> int:
 	return best
 
 
-## Fills missing layout details from metadata and frame size. A 2:1 frame cannot distinguish
-## a flat video, mono 360 and VR180 SBS, so it never supplies a projection or stereo marker.
-## 3.2:1 and wider is a flat full-SBS film; a large square frame (2880 px and up) is 360
-## top-bottom; stated top-bottom: square is 360.
+## Fills missing layout details from metadata and frame size. Without explicit format
+## information, the organization's library defaults to 360 mono. Once a layout or
+## projection is stated, the remaining details still use the upstream rules.
 static func complete(
 	stated: Dictionary, width: int, height: int, format: Dictionary = {}, file_name: String = ""
 ) -> Dictionary:
@@ -123,6 +122,17 @@ static func complete(
 	var mode := str(format.get("stereo_mode", "")).to_lower()
 	var sbs := mode in ["sbsl", "sbsr", "sbs2l", "sbs2r", "side_by_side", "right_left"]
 	var tb := mode in ["abl", "abr", "ab2l", "ab2r", "top_bottom", "bottom_top"]
+	# Our headset library is primarily 360 mono. When there is no explicit
+	# format information, use that known library default instead of guessing
+	# from frame dimensions, which can represent several different formats.
+	if not stated.has("geometry") and not stated.has("stereo") and not sbs and not tb:
+		return {
+			"geometry": Geometry.Geometry.EQUIRECT_360,
+			"stereo": false,
+			"top_bottom": false,
+			"stereo_half": false,
+			"swap": false
+		}
 	if (sbs or tb) and not explicit_axis and not stated.has("top_bottom"):
 		stated.stereo = true
 		stated.top_bottom = tb

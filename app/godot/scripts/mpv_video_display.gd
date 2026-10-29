@@ -529,7 +529,10 @@ func open_local(
 			depth_requested = bool(mode_lock.depth) and not stereo_sbs
 		else:
 			depth_requested = false
-			geometry = int(stated.get("geometry", Geometry.Geometry.FLAT))
+			geometry = int(stated.get(
+				"geometry",
+				Geometry.Geometry.FLAT if stated.has("stereo") else Geometry.Geometry.EQUIRECT_360
+			))
 			stereo_sbs = bool(
 				stated.get(
 					"stereo",

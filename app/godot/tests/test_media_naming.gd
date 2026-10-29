@@ -128,73 +128,18 @@ func _initialize() -> void:
 		),
 		"Stated top-bottom square is 360"
 	)
-	check(
-		(
-			Naming.complete({}, 5760, 5760)
-			== {
-				"geometry": full,
-				"stereo": true,
-				"top_bottom": true,
-				"stereo_half": false,
-				"swap": false
-			}
-		),
-		"Large unmarked square is 360 top-bottom"
-	)
-	check(
-		(
-			Naming.complete({}, 1080, 1080)
-			== {
-				"geometry": flat,
-				"stereo": false,
-				"top_bottom": false,
-				"stereo_half": false,
-				"swap": false
-			}
-		),
-		"Small square stays flat 2D"
-	)
-	# Frame shape fills the rest.
-	for width in [8000, 8192, 8320]:
+	# Untagged library videos default to 360 mono regardless of frame shape.
+	for size in [Vector2i(5760, 5760), Vector2i(1080, 1080), Vector2i(8192, 4096), Vector2i(3840, 1080), Vector2i(1920, 1080)]:
 		check(
-			(
-				Naming.complete({}, width, 4096)
-				== {
-					"geometry": flat,
-					"stereo": false,
-					"top_bottom": false,
-					"stereo_half": false,
-					"swap": false
-				}
-			),
-			"Unmarked near-2:1 stays flat mono: %d" % width
-		)
-	check(
-		(
-			Naming.complete({}, 3840, 1080)
-			== {
-				"geometry": flat,
-				"stereo": true,
-				"top_bottom": false,
-				"stereo_half": false,
-				"swap": false
-			}
-		),
-		"32:9 is a flat full-SBS film"
-	)
-	check(
-		(
-			Naming.complete({}, 1920, 1080)
-			== {
-				"geometry": flat,
+			Naming.complete({}, size.x, size.y) == {
+				"geometry": full,
 				"stereo": false,
 				"top_bottom": false,
 				"stereo_half": false,
 				"swap": false
-			}
-		),
-		"16:9 is flat 2D"
-	)
+			},
+			"Untagged video defaults to 360 mono: %s" % size
+		)
 	check(
 		(
 			Naming.complete({"stereo": false}, 7680, 3840)

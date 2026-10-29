@@ -210,7 +210,7 @@ class VariantIdentityBoundaries(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "requires Debug"):
                 builder.android_identity("Release")
         with patch.dict(os.environ, {"IMMIVIO_DEVELOPMENT_PACKAGE": "0"}):
-            self.assertEqual(builder.android_identity()["application_id"], "com.northboundwisdom.immivio")
+            self.assertEqual(builder.android_identity()["application_id"], "com.diggerpriest.immivio360")
 
     def test_package_and_label_are_separate_and_presets_restore_after_failure(self):
         with (
@@ -225,14 +225,14 @@ class VariantIdentityBoundaries(unittest.TestCase):
             path.write_bytes(original)
             with self.assertRaisesRegex(RuntimeError, "simulated"):
                 with builder.variant_export_presets() as identity:
-                    self.assertEqual(identity["application_id"], "com.northboundwisdom.immivio")
+                    self.assertEqual(identity["application_id"], "com.diggerpriest.immivio360")
                     self.assertEqual(
-                        path.read_text().count('package/name="Immivio"'), 3
+                        path.read_text().count('package/name="Immivio 360"'), 3
                     )
                     raise RuntimeError("simulated export failure")
             self.assertEqual(path.read_bytes(), original)
             with builder.variant_export_presets() as identity:
-                self.assertEqual(identity["application_id"], "com.northboundwisdom.immivio")
+                self.assertEqual(identity["application_id"], "com.diggerpriest.immivio360")
                 self.assertEqual(identity, builder.android_identity())
             self.assertEqual(path.read_bytes(), original)
 
