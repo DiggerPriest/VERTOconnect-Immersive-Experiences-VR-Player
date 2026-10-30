@@ -38,10 +38,16 @@ class QuestPlayerPlugin(godot: Godot) : GodotPlugin(godot) {
             runCatching {
                 host.startActivity(Intent(host, TalkToJessActivity::class.java)
                     .putExtra(TalkToJessActivity.EXTRA_PLAYER_TASK, host.taskId)
+                    .putExtra(TalkToJessActivity.EXTRA_PLAYER_COMPONENT, host.componentName.flattenToString())
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             }.onFailure { Log.e("QuestPlayer", "Could not open Talk to Jess", it) }
         }
         return true
+    }
+
+    @UsedByGodot
+    fun jess_headset_removed() {
+        TalkToJessActivity.onHeadsetRemoved()
     }
     private val closed = AtomicBoolean(false)
 

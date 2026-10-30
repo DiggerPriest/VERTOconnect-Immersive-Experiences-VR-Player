@@ -25,6 +25,12 @@ class FakeVideo:
 		seeks.append(position)
 		return true
 
+class FakeJessPlugin:
+	extends RefCounted
+	var removals := 0
+	func jess_headset_removed() -> void:
+		removals += 1
+
 var failures := 0
 
 
@@ -56,5 +62,13 @@ func _initialize() -> void:
 	handover.presence_changed(false, null)
 	handover.presence_changed(true, video)
 	check(video.seeks.size() == 1, "Absence without an active video does nothing")
+	var main := preload("res://scripts/main.gd").new()
+	var jess := FakeJessPlugin.new()
+	main.platform_plugin = jess
+	main._on_user_presence_changed(true)
+	check(jess.removals == 0, "Putting headset on does not end Jess")
+	main._on_user_presence_changed(false)
+	check(jess.removals == 1, "Removing headset notifies Jess panel")
+	main.free()
 	print("Headset handover failures: ", failures)
 	preload("res://tests/support/test_result.gd").finish(self, 1 if failures else 0)

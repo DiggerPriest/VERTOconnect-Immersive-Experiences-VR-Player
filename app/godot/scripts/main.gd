@@ -189,6 +189,8 @@ var reclining_mode: bool:
 
 func _on_user_presence_changed(present: bool) -> void:
 	_handover.presence_changed(present, video if not photo_active else null)
+	if not present and platform_plugin and PlatformMethods.supports(platform_plugin, "jess_headset_removed"):
+		platform_plugin.jess_headset_removed()
 
 
 func _ready() -> void:

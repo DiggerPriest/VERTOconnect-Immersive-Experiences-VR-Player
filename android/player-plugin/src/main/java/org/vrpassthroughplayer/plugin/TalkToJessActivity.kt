@@ -3,6 +3,8 @@ package org.vrpassthroughplayer.plugin
 import android.Manifest
 import android.app.Activity
 import android.app.ActivityManager
+import android.content.ComponentName
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.media.AudioFormat
@@ -25,6 +27,7 @@ import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import java.util.concurrent.atomic.AtomicBoolean
+import java.lang.ref.WeakReference
 
 /** A system 2D panel over the immersive activity, not a browser injected into Godot's renderer. */
 class TalkToJessActivity : Activity() {
@@ -34,9 +37,11 @@ class TalkToJessActivity : Activity() {
     private var pageFailed = false
     private var diagnosticStatus: TextView? = null
     private val probing = AtomicBoolean(false)
+    private var returnStarted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        current = WeakReference(this)
         val container = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(Color.BLACK)
@@ -55,6 +60,7 @@ class TalkToJessActivity : Activity() {
         }
         container.addView(microphoneStatus, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
         val checkMicrophone = Button(this).apply {
+            visibility = View.GONE
             text = "Test headset microphone"
             setOnClickListener {
                 if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
@@ -66,6 +72,7 @@ class TalkToJessActivity : Activity() {
         }
         container.addView(checkMicrophone, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
         diagnosticStatus = TextView(this).apply {
+            visibility = View.GONE
             setTextColor(Color.WHITE)
             setBackgroundColor(Color.rgb(30, 33, 40))
             setPadding(16, 8, 16, 8)
@@ -145,8 +152,8 @@ class TalkToJessActivity : Activity() {
                         "ready" -> ""
                         "NotAllowedError", "SecurityError" -> "Microphone blocked by the device or browser."
                         "NotFoundError", "unavailable" -> "No microphone is available to the browser."
-                        "NotReadableError" -> "Browser capture failed (NotReadableError). Test the headset microphone above."
-                        "AbortError" -> "Browser capture was interrupted (AbortError). Test the headset microphone above."
+                        "NotReadableError" -> "Browser microphone capture failed (NotReadableError)."
+                        "AbortError" -> "Browser microphone capture was interrupted (AbortError)."
                         "OverconstrainedError" -> "The headset microphone doesn't support the requested audio settings."
                         else -> "Microphone could not start."
                     }
@@ -274,6 +281,14 @@ class TalkToJessActivity : Activity() {
     override fun onDestroy() {
         pendingAudio?.deny()
         pendingAudio = null
+        closeBrowser()
+        diagnosticStatus = null
+        if (isFinishing && !returnStarted) restorePlayerActivity()
+        if (current?.get() === this) current = null
+        super.onDestroy()
+    }
+
+    private fun closeBrowser() {
         webView?.apply {
             stopLoading()
             loadUrl("about:blank")
@@ -281,14 +296,42 @@ class TalkToJessActivity : Activity() {
             destroy()
         }
         webView = null
-        diagnosticStatus = null
-        if (isFinishing) restorePlayerTask()
-        super.onDestroy()
     }
 
     private fun returnToPlayer() {
+        if (returnStarted) return
+        returnStarted = true
+        closeBrowser()
+        restorePlayerActivity()
         val playerTask = intent.getIntExtra(EXTRA_PLAYER_TASK, -1)
         if (JessWebPolicy.removePanelTask(isTaskRoot, taskId, playerTask)) finishAndRemoveTask() else finish()
+    }
+
+    @Deprecated("System panel back")
+    override fun onBackPressed() = returnToPlayer()
+
+    private fun restorePlayerActivity() {
+        val component = ComponentName.unflattenFromString(intent.getStringExtra(EXTRA_PLAYER_COMPONENT) ?: "")
+        if (component != null && component.packageName == packageName) {
+            val launched = runCatching {
+                startActivity(Intent(Intent.ACTION_MAIN).setComponent(component)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
+            }.isSuccess
+            if (launched) return
+        }
+        restorePlayerTask()
+    }
+
+    private fun endSessionOnRemoval() {
+        val browser = webView ?: return
+        if (!JessWebPolicy.trusted(browser.url ?: "")) return
+        // Ask the site to end the call, then reload to disconnect any remaining browser media.
+        browser.evaluateJavascript("document.querySelector('[aria-label=\"End call\"]')?.click()", null)
+        browser.postDelayed({
+            if (!isFinishing && !isDestroyed && webView === browser && JessWebPolicy.trusted(browser.url ?: "")) {
+                browser.loadUrl(home)
+            }
+        }, 1500)
     }
 
     private fun restorePlayerTask() {
@@ -302,6 +345,12 @@ class TalkToJessActivity : Activity() {
 
     companion object {
         const val EXTRA_PLAYER_TASK = "org.vrpassthroughplayer.plugin.PLAYER_TASK"
+        const val EXTRA_PLAYER_COMPONENT = "org.vrpassthroughplayer.plugin.PLAYER_COMPONENT"
+        @Volatile private var current: WeakReference<TalkToJessActivity>? = null
+        fun onHeadsetRemoved() {
+            val activity = current?.get() ?: return
+            activity.runOnUiThread { if (!activity.isFinishing && !activity.isDestroyed) activity.endSessionOnRemoval() }
+        }
         private const val AUDIO_PERMISSION = 0x4A45
         private const val PROBE_PERMISSION = 0x4A46
         private val MICROPHONE_DIAGNOSTICS = """
