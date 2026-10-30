@@ -357,6 +357,12 @@ func _ready() -> void:
 				_show_player_menu()
 	)
 	recent_menu.queue_requested.connect(_queue_action)
+	recent_menu.talk_to_jess_requested.connect(func():
+		if Engine.has_singleton("QuestPlayer"):
+			var plugin := Engine.get_singleton("QuestPlayer")
+			if PlatformMethods.supports(plugin, "open_talk_to_jess"):
+				plugin.open_talk_to_jess()
+	)
 	recent_menu.setting_changed.connect(_on_setting_changed)
 	recent_menu.setting_previewed.connect(_on_playback_adjustment)
 	recent_menu.recenter_requested.connect(_recenter)

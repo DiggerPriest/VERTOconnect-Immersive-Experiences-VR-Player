@@ -28,6 +28,16 @@ import javax.microedition.khronos.opengles.GL10
 
 @UnstableApi
 class QuestPlayerPlugin(godot: Godot) : GodotPlugin(godot) {
+    @UsedByGodot
+    fun open_talk_to_jess(): Boolean {
+        val host = activity ?: return false
+        host.runOnUiThread {
+            runCatching {
+                host.startActivity(Intent(host, TalkToJessActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            }.onFailure { Log.e("QuestPlayer", "Could not open Talk to Jess", it) }
+        }
+        return true
+    }
     private val closed = AtomicBoolean(false)
 
     @Volatile

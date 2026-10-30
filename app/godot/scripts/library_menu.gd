@@ -6,10 +6,12 @@ extends "res://scripts/ray_menu.gd"
 
 signal chosen(uri: String, title: String)
 signal player_requested
+signal talk_to_jess_requested
 signal queue_requested(operation: String)
 var queue_add_mode := false
 signal layout_changed
 const VIEW_MODE := 90
+const TALK_TO_JESS := 92
 const BROWSER_SIZE := 91
 var list_view := true
 var compact := false
@@ -1273,6 +1275,9 @@ func _exit_tree() -> void:
 ## (current, compiling, cold) shown on the Alpha tab change.
 func _activate(target: int) -> void:
 	remember_browse()
+	if target == TALK_TO_JESS:
+		talk_to_jess_requested.emit()
+		return
 	if target == VIEW_MODE:
 		var index := _first_line() * _cols()
 		list_view = not list_view
@@ -1740,6 +1745,7 @@ func _draw() -> void:
 			Vector2(0, 0.39 - position * 0.13),
 			i == section
 		)
+	_nav_button(TALK_TO_JESS, "Talk to Jess", "voice", Vector2(0, 0.39 - NAV_ORDER.size() * 0.13), false)
 	if account_panel.active():
 		account_panel.draw()
 		return

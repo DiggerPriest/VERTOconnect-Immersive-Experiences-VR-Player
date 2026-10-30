@@ -5,6 +5,7 @@ var checks := 0
 var failures: Array[String] = []
 var chosen: Array = []
 var settings_events: Array = []
+var jess_events: Array = []
 
 
 class Catalog:
@@ -312,12 +313,16 @@ func _run() -> void:
 			"version": "t"
 		}
 	menu.chosen.connect(func(uri: String, title: String): chosen.append([uri, title]))
+	menu.talk_to_jess_requested.connect(func(): jess_events.append(true))
 	menu.setting_changed.connect(
 		func(key: String, value: Variant): settings_events.append([key, value])
 	)
 	root.add_child(menu)
 	menu.attach_platform(platform)
 	menu.toggle()
+	check(menu._buttons.any(func(b): return b.target == Menu.TALK_TO_JESS and b.enabled), "Talk to Jess is available in the navigation")
+	menu._activate(Menu.TALK_TO_JESS)
+	check(jess_events.size() == 1, "Talk to Jess activation emits one request")
 	check(
 		menu.section == Menu.Section.RECENT and titles(menu) == ["最近 A"],
 		"Opens on the play history"
