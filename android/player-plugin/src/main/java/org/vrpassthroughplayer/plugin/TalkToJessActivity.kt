@@ -5,6 +5,9 @@ import android.app.Activity
 import android.app.ActivityManager
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.media.AudioFormat
+import android.media.AudioRecord
+import android.media.MediaRecorder
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
@@ -21,6 +24,7 @@ import android.widget.LinearLayout
 import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import java.util.concurrent.atomic.AtomicBoolean
 
 /** A system 2D panel over the immersive activity, not a browser injected into Godot's renderer. */
 class TalkToJessActivity : Activity() {
@@ -28,6 +32,8 @@ class TalkToJessActivity : Activity() {
     private var webView: WebView? = null
     private var pendingAudio: PermissionRequest? = null
     private var pageFailed = false
+    private var diagnosticStatus: TextView? = null
+    private val probing = AtomicBoolean(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,6 +54,24 @@ class TalkToJessActivity : Activity() {
             visibility = View.GONE
         }
         container.addView(microphoneStatus, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        val checkMicrophone = Button(this).apply {
+            text = "Test headset microphone"
+            setOnClickListener {
+                if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                    runMicrophoneProbe()
+                } else {
+                    requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), PROBE_PERMISSION)
+                }
+            }
+        }
+        container.addView(checkMicrophone, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        diagnosticStatus = TextView(this).apply {
+            setTextColor(Color.WHITE)
+            setBackgroundColor(Color.rgb(30, 33, 40))
+            setPadding(16, 8, 16, 8)
+            text = "Mic test: stop any Jess conversation, then press the button and speak."
+        }
+        container.addView(diagnosticStatus, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
         val stage = FrameLayout(this)
         val browser = WebView(this)
         webView = browser
@@ -121,7 +145,8 @@ class TalkToJessActivity : Activity() {
                         "ready" -> ""
                         "NotAllowedError", "SecurityError" -> "Microphone blocked by the device or browser."
                         "NotFoundError", "unavailable" -> "No microphone is available to the browser."
-                        "NotReadableError", "AbortError" -> "Microphone is unavailable or in use."
+                        "NotReadableError" -> "Browser capture failed (NotReadableError). Test the headset microphone above."
+                        "AbortError" -> "Browser capture was interrupted (AbortError). Test the headset microphone above."
                         "OverconstrainedError" -> "The headset microphone doesn't support the requested audio settings."
                         else -> "Microphone could not start."
                     }
@@ -136,10 +161,13 @@ class TalkToJessActivity : Activity() {
                 runOnUiThread {
                     val resources = request.resources
                     if (!JessWebPolicy.canCaptureAudio(request.origin.toString(), resources) || pendingAudio != null) {
+                        diagnosticStatus?.text = "Browser microphone request: blocked or another request is pending."
                         request.deny()
                     } else if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                        diagnosticStatus?.text = "Browser microphone request: permitted for VERTOconnect."
                         request.grant(arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE))
                     } else {
+                        diagnosticStatus?.text = "Browser microphone request: awaiting headset permission."
                         pendingAudio = request
                         requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), AUDIO_PERMISSION)
                     }
@@ -158,14 +186,89 @@ class TalkToJessActivity : Activity() {
     @Deprecated("Android permission callback")
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == PROBE_PERMISSION) {
+            if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) runMicrophoneProbe()
+            else diagnosticStatus?.text = "Mic test: headset permission was not granted."
+            return
+        }
         if (requestCode != AUDIO_PERMISSION) return
         val request = pendingAudio ?: return
         pendingAudio = null
         if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED && JessWebPolicy.canCaptureAudio(request.origin.toString(), request.resources)) {
+            diagnosticStatus?.text = "Browser microphone request: permitted for VERTOconnect."
             request.grant(arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE))
         } else {
+            diagnosticStatus?.text = "Browser microphone request: headset permission was not granted."
             request.deny()
         }
+    }
+
+    /** Brief native capture probe. Audio samples are never stored or transmitted. */
+    private fun runMicrophoneProbe() {
+        if (!probing.compareAndSet(false, true)) return
+        diagnosticStatus?.text = "Mic test: keep speaking for three seconds…"
+        Thread({
+            val result = try {
+                val mic = probeAudioSource(MediaRecorder.AudioSource.MIC)
+                val recognition = probeAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
+                val communication = probeAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION)
+                "Mic test: MIC $mic | RECOGNITION $recognition | COMMUNICATION $communication. Sound detected does not confirm Jess received it."
+            } finally {
+                probing.set(false)
+            }
+            runOnUiThread { if (!isFinishing && !isDestroyed) diagnosticStatus?.text = result }
+        }, "VertoMicProbe").start()
+    }
+
+    private fun probeAudioSource(source: Int): String {
+            var recorder: AudioRecord? = null
+            return try {
+                val rate = 16000
+                val minimum = AudioRecord.getMinBufferSize(rate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT)
+                if (minimum <= 0) {
+                    "unsupported ($minimum)"
+                } else {
+                    val instance = AudioRecord(source, rate, AudioFormat.CHANNEL_IN_MONO,
+                        AudioFormat.ENCODING_PCM_16BIT, maxOf(minimum, rate))
+                    recorder = instance
+                    if (instance.state != AudioRecord.STATE_INITIALIZED) {
+                        "not initialized"
+                    } else {
+                        instance.startRecording()
+                        if (instance.recordingState != AudioRecord.RECORDSTATE_RECORDING) {
+                            "not started"
+                        } else {
+                            val samples = ShortArray(1024)
+                            var total = 0
+                            var errorCode = 0
+                            var audible = false
+                            repeat(20) {
+                                if (errorCode == 0) {
+                                    val count = instance.read(samples, 0, samples.size, AudioRecord.READ_NON_BLOCKING)
+                                    if (count < 0) errorCode = count else {
+                                        total += count
+                                        for (index in 0 until count) {
+                                            if (kotlin.math.abs(samples[index].toInt()) > 128) audible = true
+                                        }
+                                    }
+                                    samples.fill(0)
+                                    Thread.sleep(50)
+                                }
+                            }
+                            when {
+                                total <= 0 -> "no frames ($errorCode)"
+                                audible -> "sound detected"
+                                else -> "silent"
+                            }
+                        }
+                    }
+                }
+            } catch (error: Exception) {
+                "failed (${error.javaClass.simpleName})"
+            } finally {
+                runCatching { recorder?.stop() }
+                recorder?.release()
+            }
     }
 
     override fun onDestroy() {
@@ -178,6 +281,7 @@ class TalkToJessActivity : Activity() {
             destroy()
         }
         webView = null
+        diagnosticStatus = null
         if (isFinishing) restorePlayerTask()
         super.onDestroy()
     }
@@ -199,6 +303,7 @@ class TalkToJessActivity : Activity() {
     companion object {
         const val EXTRA_PLAYER_TASK = "org.vrpassthroughplayer.plugin.PLAYER_TASK"
         private const val AUDIO_PERMISSION = 0x4A45
+        private const val PROBE_PERMISSION = 0x4A46
         private val MICROPHONE_DIAGNOSTICS = """
             (() => {
               const devices = navigator.mediaDevices;

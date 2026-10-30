@@ -196,6 +196,8 @@ func _run() -> void:
 		"Background selection is shown in one settings field"
 	)
 	main.recent_menu.stick_scroll(-1, .25)
+	var offered: Array = main.recent_menu.rows[0].choices
+	check(offered.size() >= 6 and offered[1].value == "auto_service" and offered[5].value == "industrial_pipe_and_valve_02", "Industrial panoramas are presented before older backgrounds")
 	check(
 		main.background.choice == "belfast", "Menu stick scroll never changes background selection"
 	)
@@ -206,10 +208,10 @@ func _run() -> void:
 			break
 	for target in main.recent_menu.choices.targets:
 		var item: Dictionary = main.recent_menu.choices.targets[target]
-		if item.kind == "choose" and item.key == "background" and item.value == "dark":
+		if item.kind == "choose" and item.key == "background" and item.value == "auto_service":
 			field_tap(main.recent_menu, target)
 			break
-	check(main.background.choice == "dark", "Same-hand ray/trigger switches background")
+	check(main.background.choice == "auto_service", "Same-hand ray/trigger selects an industrial background")
 	main._on_setting_changed("background", "belfast")
 	await settle(main.background)
 	config.load(main.settings_path)

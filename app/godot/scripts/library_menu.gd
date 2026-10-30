@@ -976,17 +976,17 @@ func _rebuild_rows() -> void:
 				var selected := str(settings.get("background", "belfast"))
 				var backgrounds: Array = []
 				for option in [
-					["verto", "VERTO immersive environment", "image"],
-					["verto_sydney", "VERTO Sydney", "image"],
-					["verto_room", "VERTO studio", "image"],
-					["belfast", "Belfast sunset", "image"],
-					["dark", "Dark background", "circle"],
-					["passthrough", "Passthrough", "eyes"],
+					["verto", "VERTO workshop (default)", "image"],
 					["auto_service", "Automotive workshop", "image"],
 					["aerodynamics_workshop", "Aerodynamics workshop", "image"],
 					["carpentry_shop_02", "Carpentry workshop", "image"],
 					["machine_shop_01", "Machine workshop", "image"],
-					["industrial_pipe_and_valve_02", "Industrial pipes and valves", "image"]
+					["industrial_pipe_and_valve_02", "Industrial pipes and valves", "image"],
+					["verto_sydney", "VERTO Sydney", "image"],
+					["verto_room", "VERTO studio", "image"],
+					["belfast", "Belfast sunset", "image"],
+					["dark", "Dark background", "circle"],
+					["passthrough", "Passthrough", "eyes"]
 				]:
 					backgrounds.append({"value": option[0], "label": option[1]})
 				if settings.get("background_custom", false):

@@ -54,6 +54,11 @@ var display_quality := Quality.DEFAULT
 var gpu_adapter := ""
 var low_end_gpu := false
 var status_label: Label3D
+var _jess_opened := false
+var _jess_xr_lost_focus := false
+var _jess_diagnostic_until := 0
+var _jess_diagnostic_next := 0
+var _jess_diagnostic_label: Label3D
 var report_timer: Timer
 var platform_plugin: Object
 var last_request := 0
@@ -361,6 +366,8 @@ func _ready() -> void:
 		if Engine.has_singleton("QuestPlayer"):
 			var plugin := Engine.get_singleton("QuestPlayer")
 			if PlatformMethods.supports(plugin, "open_talk_to_jess"):
+				_jess_opened = true
+				_jess_xr_lost_focus = false
 				plugin.open_talk_to_jess()
 	)
 	recent_menu.setting_changed.connect(_on_setting_changed)
@@ -539,6 +546,7 @@ func _apply_system_recenter() -> void:
 
 
 func _process(delta: float) -> void:
+	_update_jess_diagnostic()
 	screen_layout.tick()
 	if is_instance_valid(playback_feedback):
 		playback_feedback.tick()
@@ -648,6 +656,11 @@ func _cancel_pointer(hand: String) -> void:
 
 
 func _on_input_session_changed() -> void:
+	if _jess_opened:
+		if display.session_state != "session_focussed":
+			_jess_xr_lost_focus = true
+		elif _jess_xr_lost_focus:
+			_begin_jess_return_diagnostic()
 	_input._on_input_session_changed()
 
 
@@ -1140,9 +1153,51 @@ func _on_capabilities_ready(request_id: int, json_report: String) -> void:
 func _on_android_lifecycle(event: String) -> void:
 	Log.record("android_lifecycle", {"event": event})
 	if event == "resume":
+		if _jess_opened:
+			_begin_jess_return_diagnostic()
 		request_capabilities()
 	elif event == "pause" and video:
 		video.checkpoint_playback()
+
+
+func _begin_jess_return_diagnostic() -> void:
+	_jess_opened = false
+	_jess_diagnostic_until = Time.get_ticks_msec() + 30000
+	_jess_diagnostic_next = 0
+
+
+func _update_jess_diagnostic() -> void:
+	if _jess_diagnostic_until == 0:
+		return
+	var now := Time.get_ticks_msec()
+	if now >= _jess_diagnostic_until:
+		_jess_diagnostic_until = 0
+		if is_instance_valid(_jess_diagnostic_label):
+			_jess_diagnostic_label.queue_free()
+			_jess_diagnostic_label = null
+		return
+	if now < _jess_diagnostic_next or not is_instance_valid(xr_camera):
+		return
+	_jess_diagnostic_next = now + 500
+	if not is_instance_valid(_jess_diagnostic_label):
+		_jess_diagnostic_label = Label3D.new()
+		_jess_diagnostic_label.position = Vector3(0, 0.55, -1.8)
+		_jess_diagnostic_label.font_size = 22
+		_jess_diagnostic_label.pixel_size = 0.002
+		_jess_diagnostic_label.outline_size = 5
+		xr_camera.add_child(_jess_diagnostic_label)
+	var hands := _hand_input_report()
+	var left: Dictionary = hands.get("left_hand", {})
+	var right: Dictionary = hands.get("right_hand", {})
+	var android_focus := "unknown"
+	if platform_plugin and PlatformMethods.supports(platform_plugin, "has_android_window_focus"):
+		android_focus = "yes" if platform_plugin.has_android_window_focus() else "no"
+	_jess_diagnostic_label.text = "Return diagnostic | Android focus: %s | XR: %s\nHand rays: L %s / R %s" % [
+		android_focus,
+		display.session_state,
+		"yes" if left.get("tracked", false) else "no",
+		"yes" if right.get("tracked", false) else "no"
+	]
 
 
 func _save_report() -> void:

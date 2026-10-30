@@ -29,6 +29,9 @@ import javax.microedition.khronos.opengles.GL10
 @UnstableApi
 class QuestPlayerPlugin(godot: Godot) : GodotPlugin(godot) {
     @UsedByGodot
+    fun has_android_window_focus(): Boolean = activity?.hasWindowFocus() == true
+
+    @UsedByGodot
     fun open_talk_to_jess(): Boolean {
         val host = activity ?: return false
         host.runOnUiThread {
