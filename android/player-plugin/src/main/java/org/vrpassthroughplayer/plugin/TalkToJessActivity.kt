@@ -11,6 +11,8 @@ import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -283,7 +285,7 @@ class TalkToJessActivity : Activity() {
         pendingAudio = null
         closeBrowser()
         diagnosticStatus = null
-        if (isFinishing && !returnStarted) restorePlayerActivity()
+        if (isFinishing && !returnStarted) schedulePlayerRestore()
         if (current?.get() === this) current = null
         super.onDestroy()
     }
@@ -302,24 +304,31 @@ class TalkToJessActivity : Activity() {
         if (returnStarted) return
         returnStarted = true
         closeBrowser()
-        restorePlayerActivity()
         val playerTask = intent.getIntExtra(EXTRA_PLAYER_TASK, -1)
         if (JessWebPolicy.removePanelTask(isTaskRoot, taskId, playerTask)) finishAndRemoveTask() else finish()
+        schedulePlayerRestore()
     }
 
     @Deprecated("System panel back")
     override fun onBackPressed() = returnToPlayer()
 
-    private fun restorePlayerActivity() {
+    private fun schedulePlayerRestore() {
+        val app = applicationContext
         val component = ComponentName.unflattenFromString(intent.getStringExtra(EXTRA_PLAYER_COMPONENT) ?: "")
-        if (component != null && component.packageName == packageName) {
-            val launched = runCatching {
-                startActivity(Intent(Intent.ACTION_MAIN).setComponent(component)
+        val playerTask = intent.getIntExtra(EXTRA_PLAYER_TASK, -1)
+        // The panel must first relinquish its system focus. Starting the immersive
+        // activity while the panel is still active can leave XR merely VISIBLE.
+        Handler(Looper.getMainLooper()).postDelayed({
+            if (current?.get()?.let { !it.isFinishing && !it.isDestroyed } == true) return@postDelayed
+            val launched = component != null && component.packageName == app.packageName && runCatching {
+                app.startActivity(Intent(Intent.ACTION_MAIN).setComponent(component)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
             }.isSuccess
-            if (launched) return
-        }
-        restorePlayerTask()
+            if (!launched && playerTask >= 0) runCatching {
+                val manager = app.getSystemService(ActivityManager::class.java)
+                manager.appTasks.firstOrNull { it.taskInfo.id == playerTask }?.moveToFront()
+            }
+        }, 500)
     }
 
     private fun endSessionOnRemoval() {
@@ -332,15 +341,6 @@ class TalkToJessActivity : Activity() {
                 browser.loadUrl(home)
             }
         }, 1500)
-    }
-
-    private fun restorePlayerTask() {
-        val playerTask = intent.getIntExtra(EXTRA_PLAYER_TASK, -1)
-        if (playerTask < 0) return
-        runCatching {
-            val manager = getSystemService(ActivityManager::class.java)
-            manager.appTasks.firstOrNull { it.taskInfo.id == playerTask }?.moveToFront()
-        }
     }
 
     companion object {

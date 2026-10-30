@@ -846,6 +846,7 @@ func _hand_input_report() -> Dictionary:
 		var pointer: RefCounted = host.hand_pointers[hand]
 		var action = host._hand_action_tracker(hand)
 		var joints = host._hand_tracker(hand)
+		var meta_aim = host._meta_aim_tracker(hand)
 		report[hand] = {
 			"source": pointer.source,
 			"provider": pointer.provider,
@@ -855,6 +856,8 @@ func _hand_input_report() -> Dictionary:
 			"action_aim_tracked": host._input_pose_tracked(action, "aim"),
 			"action_grip_tracked": host._input_pose_tracked(action, "grip"),
 			"joint_tracking": joints != null and joints.has_tracking_data,
+			"optical_tracking": HandPointer.is_optical(joints),
+			"meta_aim_tracked": host._input_pose_tracked(meta_aim, "default"),
 			"joint_source": int(joints.hand_tracking_source) if joints else -1
 		}
 	return report

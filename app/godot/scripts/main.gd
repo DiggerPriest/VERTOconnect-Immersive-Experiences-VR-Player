@@ -1209,11 +1209,18 @@ func _update_jess_diagnostic() -> void:
 	var android_focus := "unknown"
 	if platform_plugin and PlatformMethods.supports(platform_plugin, "has_android_window_focus"):
 		android_focus = "yes" if platform_plugin.has_android_window_focus() else "no"
-	_jess_diagnostic_label.text = "Return diagnostic | Android focus: %s | XR: %s\nHand rays: L %s / R %s" % [
+	_jess_diagnostic_label.text = "Return diagnostic | Android focus: %s | XR: %s | Head: %s\nL: ray %s, joints %s, optical %s, aim %s | R: ray %s, joints %s, optical %s, aim %s" % [
 		android_focus,
 		display.session_state,
+		"yes" if _head_tracked() else "no",
 		"yes" if left.get("tracked", false) else "no",
-		"yes" if right.get("tracked", false) else "no"
+		"yes" if left.get("joint_tracking", false) else "no",
+		"yes" if left.get("optical_tracking", false) else "no",
+		"yes" if left.get("meta_aim_tracked", false) or left.get("action_aim_tracked", false) else "no",
+		"yes" if right.get("tracked", false) else "no",
+		"yes" if right.get("joint_tracking", false) else "no",
+		"yes" if right.get("optical_tracking", false) else "no",
+		"yes" if right.get("meta_aim_tracked", false) or right.get("action_aim_tracked", false) else "no"
 	]
 
 

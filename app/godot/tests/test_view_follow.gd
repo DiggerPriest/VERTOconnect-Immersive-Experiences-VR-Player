@@ -261,7 +261,11 @@ func _run() -> void:
 		),
 		"Library follows horizontal head direction/translation while retaining its upright pose"
 	)
-	main._on_library_chosen("file:///follow/first_flat_2D.mp4", "first_flat_2D.mp4")
+	var selected_uri := "file:///follow/first_flat_2D.mp4"
+	main.video.recent_files.opened(selected_uri, "first_flat_2D.mp4", false)
+	main.video.recent_files.progress(selected_uri, 31000, 120000)
+	main._on_library_chosen(selected_uri, "first_flat_2D.mp4")
+	check(main.video.platform.calls.any(func(c): return c[0] == "open" and c[1] == selected_uri and c[2] == 0), "Selecting a previously watched video starts at zero")
 	main._place_screen()
 	check(
 		(

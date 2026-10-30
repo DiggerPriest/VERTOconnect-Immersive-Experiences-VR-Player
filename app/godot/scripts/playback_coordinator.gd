@@ -80,7 +80,8 @@ func _on_library_chosen(uri: String, title: String) -> void:
 		if host.playback_queue.shuffle:
 			host.playback_queue.configure("queue_shuffle", true, uri)
 		host._save_queue()
-		if host.video.open_library(uri, title, metadata):
+		# Shared headsets are handed between people: a new selection starts fresh.
+		if host.video.open_library(uri, title, metadata, true):
 			host._show_player_menu()
 
 
