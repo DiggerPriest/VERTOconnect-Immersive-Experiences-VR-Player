@@ -140,6 +140,17 @@ func _run() -> void:
 	check(main.background._material.panorama.get_size() == Vector2(8192, 4096), "Workshop panorama retains 8K source dimensions")
 	check(main.display.environment.background_mode == Environment.BG_SKY, "Workshop panorama uses the world-fixed sky renderer")
 	check(main.verto_sign.visible, "VERTO sign is visible in the trades environment")
+	var sign_labels := main.verto_sign.get_children().filter(func(child): return child is Label3D).map(func(label): return label.text)
+	check(sign_labels == ["VERTO", "connect"], "Floating sign shows the complete VERTOconnect name")
+	check(main.background.INDUSTRIAL.size() == 5, "Five additional industrial panoramas are available")
+	for path in main.background.INDUSTRIAL.values():
+		check(ResourceLoader.exists(path), "Industrial panorama is included: " + str(path))
+	main.background.select("auto_service")
+	await settle(main.background)
+	check(main.background.ready_sky() != null and main.background._industrial_loaded == "auto_service", "Industrial panorama loads on demand")
+	check(main.verto_sign.visible, "VERTOconnect sign remains visible with industrial panoramas")
+	main.background.select("verto")
+	check(main.background._industrial == null, "Unselected industrial panorama is released")
 	main.background._process(9.0)
 	check(
 		main.background._ambient_active and main.background._material.energy_multiplier < main.background.brightness,

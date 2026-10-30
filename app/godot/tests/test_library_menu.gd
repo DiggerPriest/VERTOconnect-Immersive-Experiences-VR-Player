@@ -321,6 +321,10 @@ func _run() -> void:
 	menu.attach_platform(platform)
 	menu.toggle()
 	check(menu._buttons.any(func(b): return b.target == Menu.TALK_TO_JESS and b.enabled), "Talk to Jess is available in the navigation")
+	var videos_button: Dictionary = menu._buttons.filter(func(b): return b.target == Menu.NAV_BASE + Menu.Section.LOCAL)[0]
+	var jess_button: Dictionary = menu._buttons.filter(func(b): return b.target == Menu.TALK_TO_JESS)[0]
+	var settings_button: Dictionary = menu._buttons.filter(func(b): return b.target == Menu.NAV_BASE + Menu.Section.SETTINGS)[0]
+	check(videos_button.node.position.y > jess_button.node.position.y and jess_button.node.position.y > settings_button.node.position.y and settings_button.node.position.y < -0.35, "Videos and Jess are at the top, with settings at the bottom")
 	menu._activate(Menu.TALK_TO_JESS)
 	check(jess_events.size() == 1, "Talk to Jess activation emits one request")
 	check(
@@ -770,7 +774,7 @@ func _run() -> void:
 	menu.stick_scroll(1.0, 5.0)
 	check(menu.scroll == 0.0, "Stick up scrolls back and clamps at the top")
 	# The navigation column is angled towards the viewer: a ray aimed at an entry from the front hits it.
-	var settings_entry: Vector3 = menu._side.to_global(Vector3(0, 0.39 - 0.13, 0.002))
+	var settings_entry: Vector3 = menu._side.to_global(Vector3(0, -0.43, 0.002))
 	var eye := settings_entry + menu._side.global_basis.z * 1.2
 	check(
 		(
@@ -881,6 +885,15 @@ func _run() -> void:
 		{"id": "movie", "title": "Movie.mp4", "uri": "file:///Movie.mp4"},
 		{"id": "photo", "title": "Photo.jpg", "uri": "file:///Photo.jpg", "kind": "image"}
 	]
+	menu.refresh()
+	check(not menu._buttons.any(func(b): return b.target == Menu.BACK or (b.target >= Menu.CRUMB_BASE and b.target < Menu.CRUMB_BASE + 10) or b.target == Menu.USB_STORAGE), "Managed video library hides navigation out of its folder")
+	check(not menu.rows.any(func(row): return row.has("container")), "Managed video library does not show subfolders")
+	var managed_path := menu._local_path()
+	menu._go_back()
+	menu._go_to(0)
+	menu._quick_usb_storage()
+	check(menu._local_path() == managed_path, "Back, breadcrumbs, and USB shortcuts cannot leave managed files")
+	menu.managed_only = false  # Legacy browsing scenarios below run with an unlocked library.
 	menu.refresh()
 	var sample_uri := "file:///Movie.mp4"
 	var sample_path := "user://local-thumbnail-test.png"

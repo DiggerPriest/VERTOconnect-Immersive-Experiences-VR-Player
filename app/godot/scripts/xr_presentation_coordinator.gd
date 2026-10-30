@@ -839,7 +839,7 @@ func _update_background() -> void:
 		host.verto_workshop.rotation.y = deg_to_rad(host.background.yaw)
 		host.verto_workshop.set_brightness(host.background.brightness)
 	if host.verto_sign:
-		host.verto_sign.visible = host.background.choice == "verto" and not immersive and not wants_passthrough
+		host.verto_sign.visible = (host.background.choice == "verto" or host.background.choice in host.background.INDUSTRIAL) and not immersive and not wants_passthrough
 	host.display.set_scenery(
 		null if immersive or wants_passthrough else host.background.ready_sky(), host.background.yaw
 	)

@@ -2,3 +2,10 @@ Workshop panorama: University Workshop by Savva Zakharov, Poly Haven.
 Source: https://polyhaven.com/a/university_workshop
 License: CC0 1.0 Universal, https://creativecommons.org/publicdomain/zero/1.0/
 The 8K tonemapped JPEG has been recompressed for distribution.
+
+Additional Poly Haven CC0 panoramas:
+Auto Service — Sergej Majboroda, https://polyhaven.com/a/auto_service
+Aerodynamics Workshop — Oliksiy Yakovlyev, https://polyhaven.com/a/aerodynamics_workshop
+Carpentry Shop 02 — Greg Zaal, https://polyhaven.com/a/carpentry_shop_02
+Machine Shop 01 — Sergej Majboroda, https://polyhaven.com/a/machine_shop_01
+Industrial Pipe & Valve 02 — Philip Modin, https://polyhaven.com/a/industrial_pipe_and_valve_02

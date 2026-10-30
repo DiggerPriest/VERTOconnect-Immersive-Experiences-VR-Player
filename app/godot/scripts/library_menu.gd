@@ -16,6 +16,7 @@ const BROWSER_SIZE := 91
 var list_view := true
 var compact := false
 var playback_browser := false
+var managed_only := false
 const BrowseMemory := preload("res://scripts/directory_browse_memory.gd")
 var browse_memory := BrowseMemory.new()
 var _browse_scope := ""
@@ -316,12 +317,12 @@ func attach_platform(value: Object) -> void:
 	_cache_usage = null
 	_request_cache_usage()
 
-## Prefer the organization's managed video folder on startup. Browsing still
-## uses the normal local access checks and the user can navigate elsewhere.
+## Keep the headset library in the organization's managed video folder.
 func start_managed_files(root: String) -> void:
 	if root.is_empty() or not root.begins_with("/"):
 		return
 	section = Section.LOCAL
+	managed_only = true
 	media_filter = 1
 	_local_stack = [
 		{"id": root, "title": "Internal storage", "volume": true, "removable": false},
@@ -691,6 +692,8 @@ func _external_volumes() -> Array:
 
 
 func _quick_usb_storage() -> void:
+	if managed_only:
+		return
 	file_actions.reset()
 	var external := _external_volumes()
 	if external.is_empty():
@@ -767,6 +770,8 @@ func _rebuild_rows() -> void:
 					rows.back()["cover"] = entry.cover
 		Section.LOCAL:
 			for entry in _local_entries:
+				if managed_only and bool(entry.get("container", false)):
+					continue
 				var row := _entry_row(entry)
 				if bool(entry.get("volume", false)):
 					row.icon = "usb" if bool(entry.get("removable", false)) else "device"
@@ -976,13 +981,18 @@ func _rebuild_rows() -> void:
 					["verto_room", "VERTO studio", "image"],
 					["belfast", "Belfast sunset", "image"],
 					["dark", "Dark background", "circle"],
-					["passthrough", "Passthrough", "eyes"]
+					["passthrough", "Passthrough", "eyes"],
+					["auto_service", "Automotive workshop", "image"],
+					["aerodynamics_workshop", "Aerodynamics workshop", "image"],
+					["carpentry_shop_02", "Carpentry workshop", "image"],
+					["machine_shop_01", "Machine workshop", "image"],
+					["industrial_pipe_and_valve_02", "Industrial pipes and valves", "image"]
 				]:
 					backgrounds.append({"value": option[0], "label": option[1]})
 				if settings.get("background_custom", false):
 					backgrounds.append({"value": "custom", "label": "Custom panorama"})
 				rows.append(_choice_row("Background", "background", selected, backgrounds))
-				if selected in ["verto", "verto_sydney", "belfast", "custom"]:
+				if selected in ["verto", "verto_sydney", "belfast", "custom"] or selected in preload("res://scripts/app_background.gd").INDUSTRIAL:
 					var directions: Array = []
 					for angle in range(0, 360, 45):
 						directions.append({"value": angle, "label": str(angle) + "°"})
@@ -1448,6 +1458,8 @@ func _choose(row: Dictionary) -> void:
 		scroll = 0.0
 		refresh()
 	elif row.has("container"):
+		if section == Section.LOCAL and managed_only:
+			return
 		var container: Dictionary = row.container
 		scroll = 0.0
 		if section == Section.LOCAL:
@@ -1490,6 +1502,8 @@ func _choose(row: Dictionary) -> void:
 
 
 func _go_back() -> void:
+	if section == Section.LOCAL and managed_only and _editor.is_empty():
+		return
 	remember_browse()
 	file_actions.reset()
 	scroll = 0.0
@@ -1561,6 +1575,8 @@ func _crumbs() -> Array:
 
 ## Jump to path segment [level] (0: the server or library root).
 func _go_to(level: int) -> void:
+	if section == Section.LOCAL and managed_only:
+		return
 	remember_browse()
 	file_actions.reset()
 	var depth := _crumbs().size() - 1
@@ -1736,16 +1752,9 @@ func _draw() -> void:
 	var column := _quad(Vector2(0.42, 1.12), Vector3.ZERO, PANEL, 10)
 	_side.add_child(column)
 	_decorations.append(column)
-	for position in NAV_ORDER.size():
-		var i: int = NAV_ORDER[position]
-		_nav_button(
-			NAV_BASE + i,
-			I18n.t(NAV[i]),
-			NAV_ICONS[i],
-			Vector2(0, 0.39 - position * 0.13),
-			i == section
-		)
-	_nav_button(TALK_TO_JESS, "Talk to Jess", "voice", Vector2(0, 0.39 - NAV_ORDER.size() * 0.13), false)
+	_nav_button(NAV_BASE + Section.LOCAL, I18n.t(NAV[Section.LOCAL]), NAV_ICONS[Section.LOCAL], Vector2(0, 0.39), section == Section.LOCAL)
+	_nav_button(TALK_TO_JESS, "Talk to Jess", "voice", Vector2(0, 0.26), false)
+	_nav_button(NAV_BASE + Section.SETTINGS, I18n.t(NAV[Section.SETTINGS]), NAV_ICONS[Section.SETTINGS], Vector2(0, -0.43), section == Section.SETTINGS)
 	if account_panel.active():
 		account_panel.draw()
 		return
@@ -1775,7 +1784,7 @@ func _draw() -> void:
 		server_browser.draw()
 		return
 	# Right header: sub-tabs at the top level, otherwise a clickable path with back.
-	var crumbs := _crumbs()
+	var crumbs := [] if section == Section.LOCAL and managed_only else _crumbs()
 	if crumbs.is_empty():
 		var tabs: Array = SETTING_TABS if section == Section.SETTINGS else []
 		if section == Section.SETTINGS and tab == ABOUT_TAB and _about_page != 0:
@@ -1810,7 +1819,7 @@ func _draw() -> void:
 			"unlock"
 		)
 		_tips[ALL_FILES] = I18n.t("Allow access to all files")
-	if section == Section.LOCAL and not _external_volumes().is_empty():
+	if section == Section.LOCAL and not managed_only and not _external_volumes().is_empty():
 		_button(USB_STORAGE, "", Vector2(0.58, 0.46), Vector2(0.09, 0.07), true, "usb")
 		_tips[USB_STORAGE] = I18n.t("USB storage")
 		if not _eject_volume().is_empty():

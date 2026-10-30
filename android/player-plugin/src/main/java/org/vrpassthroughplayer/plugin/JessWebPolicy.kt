@@ -12,5 +12,9 @@ internal object JessWebPolicy {
     }.getOrDefault(false)
 
     fun canCaptureAudio(origin: String, resources: Array<out String>): Boolean =
-        trusted(origin) && resources.size == 1 && resources[0] == AUDIO
+        trusted(origin) && resources.any { it == AUDIO }
+
+    // Never remove a task containing the immersive player.
+    fun removePanelTask(isRoot: Boolean, panelTask: Int, playerTask: Int): Boolean =
+        isRoot && panelTask >= 0 && playerTask >= 0 && panelTask != playerTask
 }

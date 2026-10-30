@@ -6,7 +6,14 @@ const Info := preload("res://scripts/image_info.gd")
 const BELFAST := "res://backgrounds/belfast_sunset_puresky.jpg"
 const VERTO_PANORAMA := preload("res://backgrounds/verto-workshop-360-8k.jpg")
 const VERTO_SYDNEY := preload("res://backgrounds/verto-training-panorama.png")
-const CHOICES := ["verto", "verto_sydney", "verto_room", "belfast", "dark", "passthrough", "custom"]
+const INDUSTRIAL := {
+	"auto_service": "res://backgrounds/auto_service.jpg",
+	"aerodynamics_workshop": "res://backgrounds/aerodynamics_workshop.jpg",
+	"carpentry_shop_02": "res://backgrounds/carpentry_shop_02.jpg",
+	"machine_shop_01": "res://backgrounds/machine_shop_01.jpg",
+	"industrial_pipe_and_valve_02": "res://backgrounds/industrial_pipe_and_valve_02.jpg"
+}
+const CHOICES := ["verto", "verto_sydney", "verto_room", "belfast", "dark", "passthrough", "custom", "auto_service", "aerodynamics_workshop", "carpentry_shop_02", "machine_shop_01", "industrial_pipe_and_valve_02"]
 var directory := "user://backgrounds"
 var choice := "belfast"
 var custom_path := ""
@@ -21,6 +28,9 @@ var _material := PanoramaSkyMaterial.new()
 var _builtin: Texture2D
 var _custom: Texture2D
 var _builtin_requested := false
+var _industrial: Texture2D
+var _industrial_loaded := ""
+var _industrial_pending := ""
 var _thread: Thread
 var _job := {}
 var _generation := 0
@@ -46,14 +56,30 @@ func select(value: String) -> bool:
 	_generation += 1
 	choice = value
 	error = ""
+	if not INDUSTRIAL.has(choice):
+		_industrial = null
+		_industrial_loaded = ""
 	if choice == "belfast" and not _builtin and not _builtin_requested:
 		_builtin_requested = ResourceLoader.load_threaded_request(BELFAST, "Texture2D") == OK
 		if not _builtin_requested:
 			error = "Background unavailable"
 	if choice == "custom" and not _custom and not _thread:
 		_start_custom(custom_path, custom_orientation, false, custom_title)
+	_request_industrial()
 	_apply()
 	return true
+
+
+func _request_industrial() -> void:
+	if not INDUSTRIAL.has(choice) or not _industrial_pending.is_empty() or _industrial_loaded == choice:
+		return
+	_industrial = null
+	_industrial_loaded = ""
+	var result := ResourceLoader.load_threaded_request(INDUSTRIAL[choice], "Texture2D")
+	if result == OK:
+		_industrial_pending = choice
+	else:
+		error = "Background unavailable"
 
 
 func has_custom() -> bool:
@@ -145,6 +171,25 @@ static func _read_custom(input: FileAccess, job: Dictionary) -> Dictionary:
 
 
 func _process(delta: float) -> void:
+	if not _industrial_pending.is_empty():
+		var pending := _industrial_pending
+		var industrial_status := ResourceLoader.load_threaded_get_status(INDUSTRIAL[pending])
+		if industrial_status == ResourceLoader.THREAD_LOAD_LOADED:
+			var loaded := ResourceLoader.load_threaded_get(INDUSTRIAL[pending]) as Texture2D
+			_industrial_pending = ""
+			if choice == pending:
+				_industrial = loaded
+				_industrial_loaded = pending
+			else:
+				_request_industrial()
+			_apply()
+		elif industrial_status in [ResourceLoader.THREAD_LOAD_FAILED, ResourceLoader.THREAD_LOAD_INVALID_RESOURCE]:
+			_industrial_pending = ""
+			if choice == pending:
+				error = "Background unavailable"
+			else:
+				_request_industrial()
+			_apply()
 	if _ambient_active and choice == "verto":
 		_ambient_time += delta
 		_ambient_refresh -= delta
@@ -189,10 +234,10 @@ func _process(delta: float) -> void:
 
 func _apply() -> void:
 	_material.panorama = (
-		VERTO_PANORAMA if choice == "verto" else (VERTO_SYDNEY if choice == "verto_sydney" else (_builtin if choice == "belfast" else (_custom if choice == "custom" else null)))
+		VERTO_PANORAMA if choice == "verto" else (VERTO_SYDNEY if choice == "verto_sydney" else (_builtin if choice == "belfast" else (_custom if choice == "custom" else (_industrial if choice == _industrial_loaded else null))))
 	)
 	_material.energy_multiplier = brightness
-	loading = _thread != null or (choice == "belfast" and _builtin_requested)
+	loading = _thread != null or (choice == "belfast" and _builtin_requested) or (INDUSTRIAL.has(choice) and not _industrial_pending.is_empty())
 	changed.emit()
 
 
@@ -235,3 +280,5 @@ func _exit_tree() -> void:
 		_thread.wait_to_finish()
 	if _builtin_requested:
 		ResourceLoader.load_threaded_get(BELFAST)
+	if not _industrial_pending.is_empty():
+		ResourceLoader.load_threaded_get(INDUSTRIAL[_industrial_pending])

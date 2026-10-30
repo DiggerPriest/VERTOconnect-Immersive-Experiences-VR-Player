@@ -33,7 +33,9 @@ class QuestPlayerPlugin(godot: Godot) : GodotPlugin(godot) {
         val host = activity ?: return false
         host.runOnUiThread {
             runCatching {
-                host.startActivity(Intent(host, TalkToJessActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                host.startActivity(Intent(host, TalkToJessActivity::class.java)
+                    .putExtra(TalkToJessActivity.EXTRA_PLAYER_TASK, host.taskId)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             }.onFailure { Log.e("QuestPlayer", "Could not open Talk to Jess", it) }
         }
         return true
