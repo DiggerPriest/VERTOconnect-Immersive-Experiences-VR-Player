@@ -319,7 +319,6 @@ func _on_menu_action(operation: String) -> void:
 			if host.video.geometry != 0:
 				var amount: float = -0.1 if operation == "zoom_in" else (0.1 if operation == "zoom_out" else host.video.ZOOM_LIMITS.y - host.video.view_zoom)
 				host.video.zoom_view(amount)
-				host.video._remember_mode()
 		"screen_curve":
 			host.video.cycle_screen_curve()
 			host._save_screen()

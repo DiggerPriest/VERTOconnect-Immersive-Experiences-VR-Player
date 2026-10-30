@@ -59,6 +59,8 @@ var _jess_xr_lost_focus := false
 var _jess_diagnostic_until := 0
 var _jess_diagnostic_next := 0
 var _jess_diagnostic_label: Label3D
+var _handover_absent := false
+var _handover_recenter_after := 0
 var report_timer: Timer
 var platform_plugin: Object
 var last_request := 0
@@ -189,6 +191,14 @@ var reclining_mode: bool:
 
 func _on_user_presence_changed(present: bool) -> void:
 	_handover.presence_changed(present, video if not photo_active else null)
+	if not present:
+		_handover_absent = true
+		_handover_recenter_after = 0
+	elif _handover_absent:
+		_handover_absent = false
+		_handover_recenter_after = Time.get_ticks_msec() + 1500
+	if not present and not photo_active and video:
+		video.reset_playback_view()
 	if not present and platform_plugin and PlatformMethods.supports(platform_plugin, "jess_headset_removed"):
 		platform_plugin.jess_headset_removed()
 
@@ -549,6 +559,11 @@ func _apply_system_recenter() -> void:
 
 func _process(delta: float) -> void:
 	_update_jess_diagnostic()
+	if _handover_recenter_after > 0 and Time.get_ticks_msec() >= _handover_recenter_after and _head_tracked() and _head_pose() != null:
+		_handover_recenter_after = 0
+		_recenter()
+		if not photo_active and video and not video.local_uri.is_empty():
+			video.reset_playback_view()
 	screen_layout.tick()
 	if is_instance_valid(playback_feedback):
 		playback_feedback.tick()

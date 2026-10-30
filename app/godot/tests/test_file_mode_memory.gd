@@ -239,9 +239,9 @@ func _run() -> void:
 	var host := Host.new()
 	video.platform = host
 	check(video.open_local(uri, "Selected video"), "Restored source opens")
-	check(is_equal_approx(video.view_zoom, 0.3), "Saved video zoom is restored on open")
+	check(is_equal_approx(video.view_zoom, video.ZOOM_LIMITS.y), "Legacy saved zoom is ignored on open")
 	video._apply_geometry()
-	check(is_equal_approx(video.view_zoom, 0.3), "Applying the first frame keeps the saved zoom")
+	check(is_equal_approx(video.view_zoom, video.ZOOM_LIMITS.y), "Applying the first frame keeps the fully zoomed-out view")
 	# Projection, stereo and eye order are restored; Alpha always starts off (player controls switch it on).
 	check(
 		(
@@ -262,8 +262,21 @@ func _run() -> void:
 	video._remember_mode()
 	var zoom_saved := Memory.new(test_path.path_join("integration"))
 	zoom_saved.load_saved()
-	check(is_equal_approx(float(zoom_saved.lookup(uri).get("view_zoom", -1)), 0.2), "Changed zoom survives a memory reload")
-	check(zoom_saved.lookup("file:///different-video.mp4").is_empty(), "Zoom is stored per video")
+	check(not zoom_saved.lookup(uri).has("view_zoom"), "Changed zoom is not saved with video settings")
+	check(zoom_saved.lookup("file:///different-video.mp4").is_empty(), "Other video settings remain separate")
+	video.turn_view(0.4, 0.2)
+	video.screen_rotation = 12.0
+	video._on_state(video.media.session_id, JSON.stringify({"state": "ended"}))
+	check(is_equal_approx(video.view_zoom, video.ZOOM_LIMITS.y), "Ending the video resets its temporary zoom")
+	check(is_zero_approx(video.view_yaw) and is_zero_approx(video.view_pitch) and is_zero_approx(video.screen_rotation), "Ending the video resets its temporary tilt")
+	video.zoom_view(-0.3)
+	video.turn_view(0.3, -0.2)
+	video.screen_rotation = 10.0
+	check(video.open_local(uri, "Selected video"), "Video can be reopened")
+	check(is_equal_approx(video.view_zoom, video.ZOOM_LIMITS.y), "Reopening starts fully zoomed out")
+	check(is_zero_approx(video.view_yaw) and is_zero_approx(video.view_pitch) and is_zero_approx(video.screen_rotation), "Reopening resets tilt")
+	video._waiting_first = false
+	video.media.generation = 4
 	check(
 		(
 			video.toggle_eye_order()

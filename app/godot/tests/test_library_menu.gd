@@ -544,6 +544,8 @@ func _run() -> void:
 	check(titles(menu) == ["VR"], "DLNA back to the root container")
 	# Settings sub-tabs.
 	menu._activate(Menu.NAV_BASE + Menu.Section.SETTINGS)
+	check(menu._buttons.any(func(b): return b.target == Menu.RESTART_APP), "Settings retain the restart button")
+	check(not menu._buttons.any(func(b): return b.target == Menu.QUIT_APP), "Settings hide the close app button")
 	check(
 		(
 			not Menu.SETTING_TABS.has("Alpha")

@@ -611,10 +611,8 @@ func open_local(
 	subtitles.clear(true)
 	if _subtitle_surface:
 		_subtitle_surface.visible = false
-	_apply_geometry()  # Apply the projection before restoring zoom, so it is not reset later.
-	reset_view()  # Recenter for the current wearer, then restore this video's zoom.
-	if geometry != Geometry.Geometry.FLAT:
-		zoom_view(float(saved_sync.get("view_zoom", ZOOM_LIMITS.y)))
+	_apply_geometry()
+	reset_playback_view()
 	_audio_pending = id > 0
 	_sync_pending = id > 0
 	if id <= 0:
@@ -625,6 +623,15 @@ func open_local(
 		picker_error = ""
 	changed.emit()
 	return id > 0
+
+
+func reset_playback_view() -> void:
+	screen_rotation = 0.0
+	reset_view()
+	if geometry != Geometry.Geometry.FLAT:
+		zoom_view(ZOOM_LIMITS.y - view_zoom)
+	else:
+		_apply_geometry()
 
 
 func _unbind() -> void:
@@ -1701,7 +1708,6 @@ func _remember_mode() -> void:
 		"top_bottom": stereo_sbs and top_bottom,
 		"stereo_half": stereo_sbs and stereo_half,
 		"fisheye_fov": fisheye_fov,
-		"view_zoom": view_zoom,
 		"subtitle_delay_ms": subtitle_delay_ms,
 		"audio_delay_ms": audio_delay_ms,
 		"external_subtitle_uri": external_subtitle_uri
@@ -1846,6 +1852,7 @@ func _on_state(id: int, payload: String) -> void:
 		)
 	media.state = str(report.get("state", "opening"))
 	if media.state == "ended":
+		reset_playback_view()
 		_record_history(true)
 	if _debug_request > 0:
 		_debug_status = report.duplicate(true)

@@ -1879,9 +1879,8 @@ func _draw() -> void:
 		_button(QUEUE_DONE, I18n.t("Done adding"), Vector2(0.46, 0.57), Vector2(0.62, 0.07))
 	if section == Section.SETTINGS:
 		_control_button(
-			RESTART_APP, I18n.t("Restart app"), Vector2(0.10, -0.515), 0.42, true, "refresh"
+			RESTART_APP, I18n.t("Restart app"), Vector2(0.35, -0.515), 0.42, true, "refresh"
 		)
-		_control_button(QUIT_APP, I18n.t("Close app"), Vector2(0.59, -0.515), 0.42, true, "close")
 	if status in ["Video access needed", "Media access needed", "All files access needed"]:
 		_button(
 			GRANT,
