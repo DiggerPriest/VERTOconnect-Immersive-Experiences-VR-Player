@@ -600,6 +600,7 @@ func _show_recent_menu(preserve_navigation: bool = false) -> void:
 		host._close_photo_inspect(false)
 	var playing: bool = not host.photo_active and not host.video.local_uri.is_empty()
 	if host.recent_menu is LibraryMenu:
+		host.recent_menu.looking_around = false
 		host.recent_menu.playback_browser = playing
 		host.recent_menu.allow_user_dismiss = playing
 		if not playing:
@@ -840,8 +841,9 @@ func _update_background() -> void:
 		host.verto_workshop.set_brightness(host.background.brightness)
 	if host.verto_sign:
 		host.verto_sign.visible = (host.background.choice == "verto" or host.background.choice in host.background.INDUSTRIAL) and not immersive and not wants_passthrough
+	var hub_ready: bool = host.training_hub != null and host.training_hub.ready_to_show() and host.background.choice == "training_hub"
 	host.display.set_scenery(
-		null if immersive or wants_passthrough else host.background.ready_sky(), host.background.yaw
+		null if immersive or wants_passthrough or hub_ready else host.background.ready_sky(), host.background.yaw
 	)
 	var passthrough: bool = wants_passthrough and host.display.supports_passthrough()
 	if (

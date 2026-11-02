@@ -45,17 +45,28 @@ static func _make_font() -> Font:
 		names = ["Noto Sans CJK TC", "Noto Sans TC", "Microsoft JhengHei", "PingFang TC"]
 	elif I18n.language == "ja":
 		names = ["Noto Sans CJK JP", "Noto Sans JP", "Yu Gothic", "Meiryo", "Hiragino Sans"]
+	# macOS PingFangUI resolves to a reserved font collection that FreeType
+	# cannot load on current macOS. These public system CJK faces load normally.
+	if OS.get_name() == "macOS":
+		names = ["Heiti SC", "Hiragino Sans"]
+		if I18n.language == "zh_Hant":
+			names = ["Heiti TC", "Hiragino Sans"]
+		elif I18n.language == "ja":
+			names = ["Hiragino Sans", "Heiti SC"]
 	font.font_names = PackedStringArray(names + ["sans-serif"])
 	font.multichannel_signed_distance_field = true
 	font.msdf_size = 96
 	font.msdf_pixel_range = 8
 	font.generate_mipmaps = true
-	var fallback := ThemeDB.fallback_font.duplicate() as Font
+	var fallback := preload("res://branding/fonts/Inter.ttf").duplicate() as Font
 	if fallback is FontFile:
 		fallback.multichannel_signed_distance_field = true
 		fallback.msdf_size = 96
 		fallback.msdf_pixel_range = 8
 		fallback.generate_mipmaps = true
+	if I18n.language not in ["zh", "zh_Hant", "ja"]:
+		fallback.fallbacks = [font]
+		return fallback
 	font.fallbacks = [fallback]
 	return font
 

@@ -58,6 +58,28 @@ HAND_BUFFER_PINS = {
 FONT_PINS = {
     "app/godot/branding/fonts/Inter.ttf": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031",
 }
+# Reviewed local training geometry and CC0 character exports; never a general GLB exemption.
+TRAINING_HUB_PINS = {
+    "app/godot/environments/training_hub/carpentry_worker.glb": "b64568c1897a61f1c872fdba1fe1496aea64e43702db4be1f7cc8e100b1bd3e3",
+    "app/godot/environments/training_hub/electrical_worker.glb": "ad2be90e297d8d3b5b713bfb1c236242f5cdbe47c3819f16e1f7d805cae74558",
+    "app/godot/environments/training_hub/mechanical_worker.glb": "309864a9a2c0eecc24f57bfdbbb9b38db31d7dfa1809d75978a0c3abc052225e",
+    "app/godot/environments/training_hub/plumbing_worker.glb": "a24f52b01146cef43bd6d0e6e72fb35b33d7cda7afc637dd8b75f9d0d75b10de",
+    "app/godot/environments/training_hub/training_hub.glb": "26bb5f2a03eb9cdd5b168384b7539968a71d5199ce79777e21b892b56eab3226",
+}
+TRAINING_HUB_REQUIRED = {
+    "tools/training_hub/build_hub.py",
+    "tools/training_hub/build_worker.py",
+    "tools/training_hub/audit_glb.py",
+    "tools/training_hub/reimport_textures.gd",
+    "configs/training_hub_textures.py",
+    "app/godot/environments/training_hub/surface_detail.png",
+    "app/godot/scripts/training_hub_surfaces.gd",
+    "app/godot/shaders/training_hub_surface.gdshader",
+    "docs/training-hub/design.md",
+    "docs/training-hub/environment.md",
+    "docs/training-hub/worker.md",
+    "third_party/player-licenses/training-hub/MakeHuman-ASSETS.md",
+}
 PATTERNS = {
     "private machine path": re.compile(
         r"(?i)(?:[CG]:[/\\]+(?:Users[/\\]+dennis|devtools|GIT|code[/\\]+VRPassthroughPlayer)|/mnt/"
@@ -90,6 +112,11 @@ def check_files(files):
             errors.append(f"{name}: unsafe path")
         approved_mesh = name in HAND_BUFFER_PINS
         approved_font = name in FONT_PINS
+        approved_hub = name in TRAINING_HUB_PINS and hashlib.sha256(data).hexdigest() == TRAINING_HUB_PINS[name]
+        if name in TRAINING_HUB_PINS and not approved_hub:
+            errors.append(f"{name}: training hub mesh differs from reviewed asset")
+        if path.suffix.lower() == ".glb" and name not in TRAINING_HUB_PINS:
+            errors.append(f"{name}: unreviewed GLB asset")
         if approved_font and hashlib.sha256(data).hexdigest() != FONT_PINS[name]:
             errors.append(f"{name}: font differs from pinned asset")
         if approved_mesh and (
@@ -120,15 +147,16 @@ def check_files(files):
             "third_party/README.md",
         }:
             errors.append(f"{name}: internal documentation excluded")
-        if len(data) > 25 * 1024 * 1024:
-            errors.append(f"{name}: unexpected file over 25 MiB")
+        limit_mib = 50 if approved_hub else 25
+        if len(data) > limit_mib * 1024 * 1024:
+            errors.append(f"{name}: unexpected file over {limit_mib} MiB")
         try:
             value = data.decode("utf-8")
         except UnicodeDecodeError:
             if (
                 path.suffix.lower()
                 not in {".png", ".jpg", ".jpeg", ".webp", ".mp4", ".jar"}
-                and not approved_mesh and not approved_font
+                and not approved_mesh and not approved_font and not approved_hub
             ):
                 errors.append(f"{name}: unreviewed binary type")
             continue
@@ -159,6 +187,10 @@ def check_files(files):
                     errors.append(f"{gltf}: invalid hand buffer contract")
     if FONT_PINS.keys() & files.keys() and "app/godot/branding/fonts/Inter-OFL.txt" not in files:
         errors.append("app/godot/branding/fonts/Inter-OFL.txt: font license missing")
+    if TRAINING_HUB_PINS.keys() & files.keys():
+        for name in sorted(TRAINING_HUB_REQUIRED):
+            if not files.get(name, b"").strip():
+                errors.append(f"{name}: training hub source/provenance missing")
     required = {
         "LICENSE",
         "README.md",

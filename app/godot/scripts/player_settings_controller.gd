@@ -51,6 +51,7 @@ func _library_settings() -> Dictionary:
 		"subtitle_position": host.video.subtitle_position,
 		"subtitle_direction": host.video.subtitle_direction,
 		"background": host.background.choice if host.background else "belfast",
+		"training_hub_diagnostics": host.training_hub.diagnostics_enabled if host.training_hub else false,
 		"background_custom": host.background.has_custom() if host.background else false,
 		"background_title": host.background.custom_title if host.background else "",
 		"background_yaw": host.background.yaw if host.background else 0.0,
@@ -104,6 +105,9 @@ func _on_setting_changed(key: String, value: Variant) -> void:
 		"background":
 			if host.background.select(str(value)):
 				host._save_background()
+		"training_hub_diagnostics":
+			if host.training_hub:
+				host.training_hub.diagnostics_enabled = bool(value)
 		"background_yaw":
 			if value is bool:
 				host.background.rotate_sky()

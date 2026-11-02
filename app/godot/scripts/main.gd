@@ -169,6 +169,9 @@ var settings_path: String:
 	set(value):
 		_preferences.settings_path = value
 var background: Node
+var training_hub: Node3D
+var _hub_wearer_present := true
+var _hub_application_active := true
 var verto_room: Node3D
 var verto_workshop: Node3D
 var verto_sign: Node3D
@@ -190,6 +193,7 @@ var reclining_mode: bool:
 
 
 func _on_user_presence_changed(present: bool) -> void:
+	_hub_wearer_present = present
 	_handover.presence_changed(present, video if not photo_active else null)
 	if not present:
 		_handover_absent = true
@@ -452,6 +456,10 @@ func _ready() -> void:
 	background.changed.connect(_on_background_changed)
 	background.custom_saved.connect(_on_custom_background_saved)
 	add_child(background)
+	training_hub = preload("res://scripts/training_hub.gd").new()
+	training_hub.state_changed.connect(_update_background)
+	add_child(training_hub)
+	training_hub.configure_environment(world.environment)
 	verto_room = preload("res://scripts/verto_room.gd").new()
 	verto_room.visible = false
 	add_child(verto_room)
@@ -558,6 +566,7 @@ func _apply_system_recenter() -> void:
 
 
 func _process(delta: float) -> void:
+	_update_training_hub_activity()
 	_update_jess_diagnostic()
 	if _handover_recenter_after > 0 and Time.get_ticks_msec() >= _handover_recenter_after and _head_tracked() and _head_pose() != null:
 		_handover_recenter_after = 0
@@ -1398,5 +1407,20 @@ func _finish_app(restart: bool) -> void:
 
 
 func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_PAUSED:
+		_hub_application_active = false
+		_update_training_hub_activity()
+	elif what == NOTIFICATION_APPLICATION_RESUMED:
+		_hub_application_active = true
 	if what == NOTIFICATION_APPLICATION_PAUSED and photo and _gallery_save_after > 0:
 		_save_photo_adjustments()
+
+
+func _update_training_hub_activity() -> void:
+	if not training_hub or not background:
+		return
+	var media_active: bool = photo_active or (video != null and video.has_active_presentation())
+	training_hub.set_context(background.choice == "training_hub", training_hub.can_run(
+		media_active, _jess_opened, _hub_wearer_present, temporary_passthrough,
+		_hub_application_active, _input_focused()
+	))

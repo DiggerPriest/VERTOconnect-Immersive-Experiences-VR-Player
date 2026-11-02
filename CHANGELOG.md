@@ -4,6 +4,21 @@
 
 Newest first, following product release milestones. Entries under 0.6.0 and earlier describe the original project; removed conversion features are historical, not current Immivio capabilities. Some development/source snapshots contained features before their product release. Original APK identifiers `0.2` and `0.4` are retained; `0.4` was also called `0.4.0` in release notes. Availability depends on device, server and media capabilities.
 
+## 0.9.4-360.24 — Training hub headset test
+
+- Add the optional VERTOconnect Training Hub with four animated trade workers,
+  baked lighting, local assets and independent routines. Keep the existing
+  workshop panorama as the default pending visual and Quest hardware acceptance.
+- Add Look around and a hand-selectable Return to menu. Suspend scenery during
+  video, Jess, headset removal and loss of focus. Restore the panorama on load failure.
+- Add an optional session-only performance readout. Its app counters do not
+  establish GPU performance or replace a headset thermal test.
+- Apply and verify Android texture compression during builds. Include source
+  asset builders, provenance, exact asset pins and validation tests.
+- Fix macOS font fallback failures while retaining CJK filename support.
+- Increase Quest Android version code to31; retain the existing application ID
+  and repository signing identity. Headset acceptance remains pending.
+
 ## 0.9.4 — 2026-10-24
 
 - Set application version 0.9.4 / versionCode 18 for Quest, PICO and experimental OpenXR packages.

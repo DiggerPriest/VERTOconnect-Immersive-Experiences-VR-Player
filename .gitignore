@@ -64,3 +64,10 @@ thru3d*-signing.json
 __pycache__/
 
 Downloads
+
+# Regenerated from pinned embedded hub GLBs; import policy lives in configs/.
+/app/godot/environments/training_hub/*.png
+/app/godot/environments/training_hub/*.png.import
+
+# Original authored detail texture (not GLB extraction).
+!/app/godot/environments/training_hub/surface_detail.png

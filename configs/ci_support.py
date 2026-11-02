@@ -69,6 +69,7 @@ def host_tests(godot):
         (player.LOGS / "ci-host-import.log").read_text(encoding="utf-8"),
     ):
         raise RuntimeError("Godot host import reported errors")
+    player.prepare_training_hub_textures(godot, env)
     suite = ET.Element("testsuite", name="Godot source tests")
     failures = []
     scripts = sorted((player.PROJECT / "tests").glob("test_*.gd"))

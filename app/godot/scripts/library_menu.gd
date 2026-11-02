@@ -13,6 +13,8 @@ signal layout_changed
 const VIEW_MODE := 90
 const TALK_TO_JESS := 92
 const BROWSER_SIZE := 91
+const LOOK_AROUND := 93
+var looking_around := false
 var list_view := true
 var compact := false
 var playback_browser := false
@@ -252,6 +254,7 @@ var _covers := {}  # DLNA cover URL -> HTTPRequest while it downloads
 
 
 func dismiss() -> void:
+	looking_around = false
 	remember_browse()
 	browse_memory.flush()
 	file_actions.reset()
@@ -265,7 +268,7 @@ func dismiss() -> void:
 
 
 func _place_device_status(centre: Vector2) -> void:
-	if compact and playback_browser:
+	if looking_around or (compact and playback_browser):
 		if is_instance_valid(device_status):
 			device_status.visible = false
 		return
@@ -275,7 +278,7 @@ func _place_device_status(centre: Vector2) -> void:
 
 
 func refresh_session_controls(force: bool = false) -> void:
-	if compact and playback_browser:
+	if looking_around or (compact and playback_browser):
 		if is_instance_valid(device_status):
 			device_status.visible = false
 		return
@@ -392,6 +395,8 @@ func _row_target(target: int) -> bool:
 
 ## The list area, gaps between tiles included: a press there can drag the list.
 func _in_list(point: Vector3) -> bool:
+	if looking_around:
+		return false
 	var span := _bar_span()
 	return (
 		file_actions.modal.is_empty()
@@ -977,6 +982,7 @@ func _rebuild_rows() -> void:
 				var backgrounds: Array = []
 				for option in [
 					["verto", "VERTO workshop (default)", "image"],
+					["training_hub", "VERTOconnect Training Hub — Animated (preview)", "image"],
 					["auto_service", "Automotive workshop", "image"],
 					["aerodynamics_workshop", "Aerodynamics workshop", "image"],
 					["carpentry_shop_02", "Carpentry workshop", "image"],
@@ -992,6 +998,8 @@ func _rebuild_rows() -> void:
 				if settings.get("background_custom", false):
 					backgrounds.append({"value": "custom", "label": "Custom panorama"})
 				rows.append(_choice_row("Background", "background", selected, backgrounds))
+				if selected == "training_hub":
+					rows.append(_choice_row("Performance diagnostics (this session)", "training_hub_diagnostics", bool(settings.get("training_hub_diagnostics", false)), [{"value": false, "label": "Off"}, {"value": true, "label": "On"}]))
 				if selected in ["verto", "verto_sydney", "belfast", "custom"] or selected in preload("res://scripts/app_background.gd").INDUSTRIAL:
 					var directions: Array = []
 					for angle in range(0, 360, 45):
@@ -1285,6 +1293,15 @@ func _exit_tree() -> void:
 ## (current, compiling, cold) shown on the Alpha tab change.
 func _activate(target: int) -> void:
 	remember_browse()
+	if target == LOOK_AROUND:
+		if playback_browser:
+			return
+		looking_around = not looking_around
+		choices.reset()
+		_drag.clear()
+		_fling = 0.0
+		refresh()
+		return
 	if target == TALK_TO_JESS:
 		talk_to_jess_requested.emit()
 		return
@@ -1743,6 +1760,12 @@ func _editor_input(target: int) -> void:
 
 func _draw() -> void:
 	_clear_layout()
+	_backdrop.visible = not looking_around
+	if device_status:
+		device_status.visible = not looking_around
+	if looking_around:
+		_button(LOOK_AROUND, "Return to menu", Vector2(0, -0.4), Vector2(0.42, 0.1), true)
+		return
 	if not file_actions.modal.is_empty():
 		file_actions.draw_modal()
 		return
@@ -1754,6 +1777,8 @@ func _draw() -> void:
 	_decorations.append(column)
 	_nav_button(NAV_BASE + Section.LOCAL, I18n.t(NAV[Section.LOCAL]), NAV_ICONS[Section.LOCAL], Vector2(0, 0.39), section == Section.LOCAL)
 	_nav_button(TALK_TO_JESS, "Talk to Jess", "voice", Vector2(0, 0.26), false)
+	if not playback_browser:
+		_nav_button(LOOK_AROUND, "Look around", "eyes", Vector2(0, 0.13), false)
 	_nav_button(NAV_BASE + Section.SETTINGS, I18n.t(NAV[Section.SETTINGS]), NAV_ICONS[Section.SETTINGS], Vector2(0, -0.43), section == Section.SETTINGS)
 	if account_panel.active():
 		account_panel.draw()

@@ -1,0 +1,57 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="PackedScene" path="res://environments/training_hub/training_hub.glb" id="1_building"]
+[ext_resource type="PackedScene" path="res://environments/training_hub/electrical_worker.glb" id="2_worker"]
+
+[ext_resource type="Script" path="res://scripts/training_hub_actor.gd" id="3_actor"]
+[ext_resource type="PackedScene" path="res://environments/training_hub/plumbing_worker.glb" id="4_worker"]
+[ext_resource type="PackedScene" path="res://environments/training_hub/carpentry_worker.glb" id="5_worker"]
+[ext_resource type="PackedScene" path="res://environments/training_hub/mechanical_worker.glb" id="6_worker"]
+
+[node name="TrainingHub" type="Node3D"]
+
+[node name="Architecture" parent="." instance=ExtResource("1_building")]
+
+[node name="ElectricalWorker" parent="." instance=ExtResource("2_worker")]
+position = Vector3(1.1, 0.0305, -7.9)
+rotation = Vector3(0, 3.14159265, 0)
+
+script = ExtResource("3_actor")
+animation_clip = "Electrical_inspection_20s"
+phase_offset = 0.0
+idle_seconds = 4.0
+
+[node name="PlumbingWorker" parent="." instance=ExtResource("4_worker")]
+position = Vector3(7.9, 0, 1.1)
+rotation = Vector3(0, 1.57079633, 0)
+script = ExtResource("3_actor")
+animation_clip = "Plumbing_adjust_fitting_24s"
+phase_offset = 6.0
+idle_seconds = 3.0
+
+[node name="CarpentryWorker" parent="." instance=ExtResource("5_worker")]
+position = Vector3(-1.1, 0, 7.9)
+script = ExtResource("3_actor")
+animation_clip = "Carpentry_measure_mark_18s"
+phase_offset = 9.0
+idle_seconds = 5.0
+
+[node name="MechanicalWorker" parent="." instance=ExtResource("6_worker")]
+position = Vector3(-7.9, 0, -1.1)
+rotation = Vector3(0, -1.57079633, 0)
+script = ExtResource("3_actor")
+animation_clip = "Mechanical_tablet_inspection_26s"
+phase_offset = 13.0
+idle_seconds = 4.0
+
+[node name="Skylight" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-65, -30, 0)
+light_color = Color(1, 0.94, 0.84, 1)
+light_energy = 1.1
+shadow_enabled = false
+
+[node name="Fill" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-35, 140, 0)
+light_color = Color(0.64, 0.78, 1, 1)
+light_energy = 0.55
+shadow_enabled = false

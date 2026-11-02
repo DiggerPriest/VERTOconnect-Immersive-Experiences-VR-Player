@@ -749,7 +749,34 @@ def build_plugin(args, env, sdk):
     )
 
 
+def prepare_training_hub_textures(godot, env):
+    from configs import training_hub_textures as textures
+    expected = textures.texture_paths(PROJECT)
+    if not expected:
+        return
+    def import_hub():
+        run([godot, "--headless", "--xr-mode", "off", "--path", PROJECT,
+             "--import"], env=env, log="training-hub-texture-import.log",
+            timeout=600, fail_on_engine_error=True)
+    if any(not p.is_file() or not p.with_suffix(".png.import").is_file() for p in expected):
+        import_hub()
+    if textures.configure(PROJECT):
+        run([godot, "--headless", "--xr-mode", "off", "--path", PROJECT,
+             "--editor", "--script", ROOT / "tools/training_hub/reimport_textures.gd"],
+            env=env, log="training-hub-texture-reimport.log", timeout=600)
+        output = (LOGS / "training-hub-texture-reimport.log").read_text()
+        errors = [line for line in output.splitlines()
+                  if line.startswith(("SCRIPT ERROR:", "SHADER ERROR:", "ERROR:"))
+                  and not re.fullmatch(r"ERROR: [0-9]+ RID allocations of type '.+' were leaked at exit\.", line)]
+        # Editor + custom SceneTree shutdown reports editor-owned RIDs, as does
+        # configure_android_editor. Import completion and all other errors gate.
+        if "TRAINING_HUB_TEXTURES_IMPORTED " + str(len(expected)) not in output or errors:
+            raise RuntimeError("Training hub texture reimport failed; see scoped import log")
+    textures.verify(PROJECT)
+
+
 def package(args, env, sdk):
+    prepare_training_hub_textures(export_executable(args.godot), env)
     identity = android_identity(args.build_type)
     development_suffix = "-dev" if identity["application_id"].endswith(".dev") else ""
     variant = args.build_type.lower()
