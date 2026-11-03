@@ -10,6 +10,7 @@ Release remains unpublished. Existing headset assignments and release assets hav
 - Runtime views inspected: portal, fans, conveyor and rear door (`/tmp/verto-runtime-*.png`).
 - Truck hidden; fans relocated, wall penetrations ray-tested clear. Conveyor rerouted between columns; wall opening ray-tested clear. Coal offsets corrected to belt surface; full-loop visual verification remains outstanding.
 - Portal crossbars removed by connected mesh island; centred illuminated sign and right-pillar green signal confirmed in render.
+- Stockpile disappearance checked against evaluated heap geometry for all 42 coal pieces at their last visible frame: each centre was below the pile surface by at least 0.438 m. The Godot loop check separately bounds visible movement; this geometric check does not substitute for viewing the full animation in a headset.
 - Grey concrete, narrow joints, sparse oil/tyre/coal overlays implemented. Painted line wear still needs final treatment/review.
 - Source audio: 30 seconds, stereo 48 kHz. Decoded peak 4269/32768; boundary sample jump 60/32768; first/last 0.1-second RMS 456/439. No clipping; these measurements do not replace listening or headset volume testing.
 - GitHub CLI installed at `/Users/rpriest/.local/bin/gh`; the signed-in account has verified push access. Current `.24` release remains unchanged; its Quest receipt identifies package `com.diggerpriest.immivio360` and signing certificate `e50eecdd0d06e6509417f9ac5a13509876e95a609208164ab790b94bfda69b3d`.
