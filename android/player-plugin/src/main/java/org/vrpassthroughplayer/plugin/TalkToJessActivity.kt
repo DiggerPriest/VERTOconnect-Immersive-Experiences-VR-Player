@@ -40,6 +40,7 @@ class TalkToJessActivity : Activity() {
     private var diagnosticStatus: TextView? = null
     private val probing = AtomicBoolean(false)
     private var returnStarted = false
+    private val initialPermission = JessInitialPermissionGate()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -189,12 +190,23 @@ class TalkToJessActivity : Activity() {
         }
         container.addView(stage, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
         setContentView(container)
-        browser.loadUrl(home)
+        // Complete the Android permission dialog before the page can initiate
+        // getUserMedia. Otherwise a system-panel transition can cancel the
+        // WebView request while the site is waiting for capture to start.
+        if (initialPermission.begin(checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED)) {
+            requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), INITIAL_AUDIO_PERMISSION)
+        } else {
+            browser.loadUrl(home)
+        }
     }
 
     @Deprecated("Android permission callback")
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == INITIAL_AUDIO_PERMISSION) {
+            if (initialPermission.completed(!isFinishing && !isDestroyed)) webView?.loadUrl(home)
+            return
+        }
         if (requestCode == PROBE_PERMISSION) {
             if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) runMicrophoneProbe()
             else diagnosticStatus?.text = "Mic test: headset permission was not granted."
@@ -353,6 +365,7 @@ class TalkToJessActivity : Activity() {
         }
         private const val AUDIO_PERMISSION = 0x4A45
         private const val PROBE_PERMISSION = 0x4A46
+        private const val INITIAL_AUDIO_PERMISSION = 0x4A47
         private val MICROPHONE_DIAGNOSTICS = """
             (() => {
               const devices = navigator.mediaDevices;
