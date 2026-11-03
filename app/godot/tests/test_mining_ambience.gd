@@ -1,5 +1,7 @@
 extends SceneTree
-func _initialize(): call_deferred("run")
+func _initialize():
+	if not preload("res://tests/support/test_result.gd").prepare(self): return
+	call_deferred("run")
 func run():
 	var audio = preload("res://scripts/mining_ambience.gd").new()
 	root.add_child(audio)
@@ -18,4 +20,4 @@ func run():
 	audio.queue_free()
 	await process_frame
 	print("MINING_AMBIENCE_PASS")
-	quit()
+	preload("res://tests/support/test_result.gd").finish(self, 0)

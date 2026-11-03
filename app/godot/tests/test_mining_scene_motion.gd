@@ -1,6 +1,8 @@
 extends SceneTree
 
-func _initialize(): call_deferred("run")
+func _initialize():
+	if not preload("res://tests/support/test_result.gd").prepare(self): return
+	call_deferred("run")
 
 func run():
 	var model = Node3D.new()
@@ -50,4 +52,4 @@ func run():
 	model.queue_free()
 	await process_frame
 	print("MINING_MOTION_PASS: concurrent clips, source preservation, idempotency, pause and resume")
-	quit()
+	preload("res://tests/support/test_result.gd").finish(self, 0)

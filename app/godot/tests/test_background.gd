@@ -197,7 +197,7 @@ func _run() -> void:
 	)
 	main.recent_menu.stick_scroll(-1, .25)
 	var offered: Array = main.recent_menu.rows[0].choices
-	check(offered.size() >= 7 and offered[0].value == "verto" and offered[1].value == "training_hub" and offered[2].value == "auto_service" and offered[6].value == "industrial_pipe_and_valve_02", "Current default, optional animated hub, then industrial panoramas precede older backgrounds")
+	check(offered.size() >= 8 and offered[0].value == "verto" and offered[1].value == "training_hub" and offered[2].value == "mining_facility" and offered[3].value == "auto_service" and offered[7].value == "industrial_pipe_and_valve_02", "Default, animated environments, then industrial panoramas precede older backgrounds")
 	check(
 		main.background.choice == "belfast", "Menu stick scroll never changes background selection"
 	)

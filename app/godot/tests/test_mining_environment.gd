@@ -4,7 +4,9 @@ var failures: Array[String] = []
 func check(condition: bool, message: String):
 	if not condition: failures.append(message)
 
-func _initialize(): call_deferred("run")
+func _initialize():
+	if not preload("res://tests/support/test_result.gd").prepare(self): return
+	call_deferred("run")
 
 func run():
 	var hub = preload("res://scripts/training_hub.gd").new()
@@ -64,4 +66,4 @@ func run():
 	await create_timer(0.15).timeout
 	for failure in failures: push_error(failure)
 	print("MINING_ENVIRONMENT_", "PASS" if failures.is_empty() else "FAIL", ": ", failures)
-	quit(0 if failures.is_empty() else 1)
+	preload("res://tests/support/test_result.gd").finish(self, 0 if failures.is_empty() else 1)
