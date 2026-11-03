@@ -1,31 +1,40 @@
-# Version 1 candidate — 3 November 2026
+# Mining workshop v1 — release and acceptance record
 
-Release remains unpublished. Existing headset assignments and release assets have not been changed.
+Published 3 November 2026 as an additional asset on release `v0.9.4-360.24`. The eight pre-existing assets were verified unchanged. No headset assignments have been modified by this work.
 
-## Current evidence
+## Published APK
 
-- Blender checkpoint: `build/training-hub/source-checkpoints/VERTO_v1_candidate_20261103.blend`.
-- Candidate GLB installed locally in `app/godot/environments/mining_facility/mining_facility.glb`; 192 animation clips exported, six independent runtime loop groups.
-- Runtime environment, motion and ambience tests pass with `--headless --xr-mode off`. A prior environment run reported one RefCounted shutdown warning; a verbose rerun after the cleanup wait produced no leak warning. The warning was intermittent, so keep watching CI/device logs.
-- Runtime views inspected: portal, fans, conveyor and rear door (`/tmp/verto-runtime-*.png`).
-- Truck hidden; fans relocated, wall penetrations ray-tested clear. Conveyor rerouted between columns; wall opening ray-tested clear. Coal offsets corrected to belt surface; full-loop visual verification remains outstanding.
-- Portal crossbars removed by connected mesh island; centred illuminated sign and right-pillar green signal confirmed in render.
-- Stockpile disappearance checked against evaluated heap geometry for all 42 coal pieces at their last visible frame: each centre was below the pile surface by at least 0.438 m. The Godot loop check separately bounds visible movement; this geometric check does not substitute for viewing the full animation in a headset.
-- Grey concrete, narrow joints, sparse oil/tyre/coal overlays implemented. Painted line wear still needs final treatment/review.
-- Source audio: 30 seconds, stereo 48 kHz. Decoded peak 4269/32768; boundary sample jump 60/32768; first/last 0.1-second RMS 456/439. No clipping; these measurements do not replace listening or headset volume testing.
-- GitHub CLI installed at `/Users/rpriest/.local/bin/gh`; the signed-in account has verified push access. Current `.24` release remains unchanged; its Quest receipt identifies package `com.diggerpriest.immivio360` and signing certificate `e50eecdd0d06e6509417f9ac5a13509876e95a609208164ab790b94bfda69b3d`.
-- Current CI run 41563753232 passed on macOS and Windows, but it predates the latest rear expansion and microphone change and is not a final build.
-- Latest scene is exported from `VERTO_rear_plant_visible_20261103-131729.blend`; the expanded gallery, stairs, crane, service headers and pump were inspected in Blender and a desktop Godot rear view. Headset performance and final close-clearance review remain open.
-- Jess now requests Android microphone permission before loading the page, to avoid interrupting a pending WebView capture request. This is a proposed fix, not a confirmed root cause; permission grant, denial, retry and headset behaviour still need device validation.
-- Workflow changes classify `-test.*` and `-rc.*` tags as prereleases, never latest, and remove asset clobbering.
+- URL: https://github.com/DiggerPriest/VERTOconnect-Immersive-Experiences-VR-Player/releases/download/v0.9.4-360.24/VERTOconnect-Quest-Mining-v1-code32-20261103.apk
+- SHA-256: `a22c16a852aa73369efb5e73f250571f5745cff8672edf0e7708350c401ad574`
+- Size: 369,621,363 bytes; Android version code 32; version name 0.9.4.
+- Package: `com.diggerpriest.immivio360`.
+- Signing certificate SHA-256: `e50eecdd0d06e6509417f9ac5a13509876e95a609208164ab790b94bfda69b3d`, matching the previous release.
+- Source commit: `b314b6bccceb7711f352d623a3e741f3d2d0b78f` on `release/mining-v1-test`.
+- CI run: https://github.com/DiggerPriest/VERTOconnect-Immersive-Experiences-VR-Player/actions/runs/41569311051 — macOS and Windows passed.
+- Downloaded APK hash matches the build receipt and GitHub asset digest. Binary Android manifest independently checked for package and version code. Mining scene, compressed textures and MP3 stream are present in the APK. Public download URL returned HTTP 200.
 
-## Remaining gates
+## Scene evidence
 
-- Re-run full runtime checks against the latest scene and build candidate.
-- Verify the entire coal animation loop including feed, discharge and hidden recycle; check supports, guards, wall clearances and fan connections from close views.
-- Finish inspection of fan controls, overhead workshop ductwork and painted-marking wear.
-- Check compressed textures, lighting and anti-aliasing in the final runtime candidate. Desktop renders are not device performance evidence.
-- Resolve or accurately diagnose remaining shutdown warning; run required app/native/source checks.
-- Prepare isolated release branch, source/provenance documentation and unique test tag. Local workflow suite: 57 tests passed. Texture policy covers mining PNG/JPEG, with 30 Android compressed outputs verified locally; source boundary check only covered tracked files and must be repeated on the release commit.
-- Build signed APK through CI, verify package/signature/version/hash and publish unique prerelease URL and SHA-256. Do not alter existing releases or headset assignments.
-- User performs headset performance/comfort acceptance before wider rollout.
+- Final source checkpoint: `build/training-hub/source-checkpoints/VERTO_pump_connections_20261103-134309.blend`.
+- App GLB SHA-256: `516bb393016c02fad611fa2b4ba015742340baf493e37f0572eaf75c51c40e33`.
+- Scene: 192,500 triangles, 264 mesh primitives, 87 materials and 192 animation clips, combined into six independent runtime loop groups. Thirty scoped textures have Android compressed output.
+- Rear expansion includes crane, gallery/stairs/rails, service headers, cable ladder and pump with connecting pipes. Crane bridge/trolley/hoist cleared from roof trusses using evaluated mesh intersection checks. Gallery stairs and pump checked against columns.
+- Portal: curved fascia, concrete infill, orange service cables, centred illuminated sign and right-pillar green signal. Front and rear desktop app views inspected.
+- Fans relocated from the conveyor bay; wall penetrations checked clear; guarded fronts and local controls inspected in a close render.
+- Conveyor has transfer chute, skirt guards, return belt, idlers, drums, motor, braces and footings. Route and framed wall penetration clear the columns.
+- All 42 coal pieces checked over a complete exported app loop: largest visible movement at 60 samples/sec was 0.0593 m. At the last visible frame, evaluated heap geometry covers each piece centre by at least 0.438 m. Full visual headset review is still pending.
+- Grey concrete, narrow floor joints, restrained oil/tyre/coal overlays and subtle lane-marking wear implemented.
+- User-visible Blender issue was Local View hiding new objects. Local View was disabled and the current checkpoint reopened; rear viewport now shows crane, gallery/stairs and pump. App default camera remains portal-facing.
+
+## App evidence and limits
+
+- Headset removal implementation pauses the active video and requests a restart of the same media session at 0:00 on replacement. Native proximity/display fallback, duplicate events, different-session protection and app gates have automated coverage. Actual Quest signal behaviour is not established by these tests.
+- Jess requests Android microphone permission before loading the web page. Two JVM permission-startup tests passed on both runners. This addresses a possible permission/capture ordering problem; physical first-grant, denial/retry and reopening tests remain pending.
+- User-supplied audio is a 30-second stereo MP3 at 48 kHz. Loop and pause/resume behaviour pass automated checks. Decoded peak was 4269/32768 and boundary sample jump 60/32768. Listening and headset volume checks remain pending.
+- Intermittent headless shutdown warning remains documented: final macOS environment test reported three ObjectDB instances at exit despite successful assertions; another verbose local run did not reproduce it. The separate CI texture cleanup error in the real-worker test was addressed by waiting for queued cleanup and the fresh CI run passed.
+
+## Remaining acceptance
+
+The user agreed to test one Quest first. Use `docs/devices/mining-v1-headset-check.md`: microphone first-grant/denial/retry, same-video removal/replacement restart from zero, scene stability/performance/comfort, audio volume/loop and gating, and visual conveyor/portal/door/fan inspection.
+
+Do not mark the overall goal complete until these device results and any resulting fixes are verified. After the user confirms the APK works, prepare the tested changes for merge into the fork's default branch `quest-360-mono`. Repository actions must use the DiggerPriest credential scoped to this project; never use rpvrt.
