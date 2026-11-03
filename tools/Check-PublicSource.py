@@ -60,7 +60,7 @@ FONT_PINS = {
 }
 # Reviewed local training geometry and CC0 character exports; never a general GLB exemption.
 TRAINING_HUB_PINS = {
-    "app/godot/environments/mining_facility/mining_facility.glb": "2c647d9cce74c86f7999d2715282968d2ecc1949cf634286b767b7a30ea157c2",
+    "app/godot/environments/mining_facility/mining_facility.glb": "516980d100155799d302d1e7013f0eaff9d456bd041f506c2479753d41e651c9",
     "app/godot/environments/training_hub/carpentry_worker.glb": "b64568c1897a61f1c872fdba1fe1496aea64e43702db4be1f7cc8e100b1bd3e3",
     "app/godot/environments/training_hub/electrical_worker.glb": "ad2be90e297d8d3b5b713bfb1c236242f5cdbe47c3819f16e1f7d805cae74558",
     "app/godot/environments/training_hub/mechanical_worker.glb": "309864a9a2c0eecc24f57bfdbbb9b38db31d7dfa1809d75978a0c3abc052225e",
