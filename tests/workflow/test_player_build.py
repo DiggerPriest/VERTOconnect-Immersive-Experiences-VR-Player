@@ -264,6 +264,23 @@ class VariantIdentityBoundaries(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "cannot be combined"):
                 builder.android_identity("Debug")
 
+    def test_beta_receipt_cannot_select_a_production_artifact(self):
+        from configs import ci_support
+        with (
+            tempfile.TemporaryDirectory() as directory,
+            patch.object(builder, "ROOT", Path(directory)),
+            patch.dict(os.environ, {"VERTO_ANDROID_CHANNEL": "beta"}),
+        ):
+            folder = Path(directory) / "artifacts"
+            folder.mkdir()
+            for prefix, label in (("Immivio", "production"), ("Immivio-beta", "beta")):
+                (folder / (prefix + "-QUEST-0.9.4-release-20261103.build.json")).write_text(
+                    json.dumps({"label": label})
+                )
+            self.assertEqual(ci_support.latest_receipt("Quest", "Release")["label"], "beta")
+            with patch.dict(os.environ, {"VERTO_ANDROID_CHANNEL": "production"}):
+                self.assertEqual(ci_support.latest_receipt("Quest", "Release")["label"], "production")
+
     def test_development_identity_is_separate_and_rejects_release(self):
         with patch.dict(os.environ, {"IMMIVIO_DEVELOPMENT_PACKAGE": "1"}):
             self.assertEqual(builder.android_identity("Debug")["application_id"],

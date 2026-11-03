@@ -204,9 +204,10 @@ def build_type_for_ref(requested=None, environment=None):
 
 def latest_receipt(vendor, build_type):
     platform = {"Pico": "PICO", "Quest": "QUEST", "OpenXR": "OpenXR"}[vendor]
+    prefix = player.android_artifact_prefix(player.android_identity(build_type))
     paths = list(
         (player.ROOT / "artifacts").glob(
-            f"Immivio-{platform}-*-{build_type.lower()}-*.build.json"
+            f"{prefix}-{platform}-*-{build_type.lower()}-*.build.json"
         )
     )
     if not paths:

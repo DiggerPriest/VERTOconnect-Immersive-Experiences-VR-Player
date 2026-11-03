@@ -438,6 +438,14 @@ def android_identity(build_type=None):
     return {"application_id": "com.diggerpriest.immivio360", "application_label": "VERTOconnect VR Player"}
 
 
+def android_artifact_prefix(identity):
+    suffix = next(
+        ("-" + value for value in ("dev", "beta")
+         if identity["application_id"].endswith("." + value)), ""
+    )
+    return "Immivio" + suffix
+
+
 @contextmanager
 def variant_export_presets():
     path = PROJECT / "export_presets.cfg"
@@ -804,10 +812,7 @@ def prepare_training_hub_textures(godot, env):
 def package(args, env, sdk):
     prepare_training_hub_textures(export_executable(args.godot), env)
     identity = android_identity(args.build_type)
-    identity_suffix = next(
-        ("-" + suffix for suffix in ("dev", "beta")
-         if identity["application_id"].endswith("." + suffix)), ""
-    )
+    artifact_prefix = android_artifact_prefix(identity)
     variant = args.build_type.lower()
     templates, engine = template_directory(args, env)
     env = signing_environment(env, build_type=args.build_type)
@@ -817,7 +822,7 @@ def package(args, env, sdk):
     platform_name = {"Quest": "QUEST", "Pico": "PICO", "OpenXR": "OpenXR"}[args.vendor]
     output = (
         ROOT
-        / f"artifacts/Immivio{identity_suffix}-{platform_name}-{version}-{variant}-{datetime.now():%Y%m%d}.apk"
+        / f"artifacts/{artifact_prefix}-{platform_name}-{version}-{variant}-{datetime.now():%Y%m%d}.apk"
     )
     preset = {"Quest": "Quest 3", "Pico": "PICO 4", "OpenXR": "OpenXR (Experimental)"}[
         args.vendor

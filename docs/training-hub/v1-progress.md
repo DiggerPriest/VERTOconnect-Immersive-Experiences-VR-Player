@@ -23,7 +23,7 @@ This revision makes mining the sole/default background, migrates retired saved b
 
 Regression fixtures warm the shared mining resource before UI construction under Godot’s headless dummy renderer to avoid observed concurrent RID-allocation errors. The dedicated mining environment test retains cold asynchronous loading and lifecycle coverage. Environment requests are drained at shutdown and cannot restart from teardown signals. Headset performance has not been measured by these tests.
 
-Local verification for this revision: all 83 Godot source tests and 60 workflow tests passed. A fresh signed Quest beta build is required before publication; the earlier cancelled beta build did not publish an APK.
+Local verification for this revision: all 83 Godot source tests and 61 workflow tests passed. A fresh signed Quest beta build is required before publication; the earlier cancelled beta build did not publish an APK.
 
 ## Scene evidence
 
