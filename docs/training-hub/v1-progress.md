@@ -6,7 +6,7 @@ Release remains unpublished. Existing headset assignments and release assets hav
 
 - Blender checkpoint: `build/training-hub/source-checkpoints/VERTO_v1_candidate_20261103.blend`.
 - Candidate GLB installed locally in `app/godot/environments/mining_facility/mining_facility.glb`; 192 animation clips exported, six independent runtime loop groups.
-- Runtime environment, motion and ambience tests pass with `--headless --xr-mode off`. Environment test has one remaining RefCounted shutdown warning after allowing AudioServer to finish.
+- Runtime environment, motion and ambience tests pass with `--headless --xr-mode off`. A prior environment run reported one RefCounted shutdown warning; a verbose rerun after the cleanup wait produced no leak warning. The warning was intermittent, so keep watching CI/device logs.
 - Runtime views inspected: portal, fans, conveyor and rear door (`/tmp/verto-runtime-*.png`).
 - Truck hidden; fans relocated, wall penetrations ray-tested clear. Conveyor rerouted between columns; wall opening ray-tested clear. Coal offsets corrected to belt surface; full-loop visual verification remains outstanding.
 - Portal crossbars removed by connected mesh island; centred illuminated sign and right-pillar green signal confirmed in render.
