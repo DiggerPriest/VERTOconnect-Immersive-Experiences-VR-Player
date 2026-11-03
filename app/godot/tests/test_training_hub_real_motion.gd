@@ -47,5 +47,8 @@ func run() -> void:
 		check(not hub._diagnostics.visible, "No diagnostic overlay when headset removed")
 	hub.queue_free()
 	await process_frame
+	# Allow queued texture cleanup to run before headless shutdown.
+	await create_timer(0.5).timeout
+	await process_frame
 	for failure in failures:push_error(failure)
 	preload("res://tests/support/test_result.gd").finish(self, 0 if failures.is_empty() else 1)
