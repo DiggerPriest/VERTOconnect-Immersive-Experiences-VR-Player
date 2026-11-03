@@ -2,7 +2,7 @@
 
 Use one Quest before updating the remaining fleet. The first Quest test confirmed the scene and pause/restart sequence, with some lag and zoomed-in playback after replacement. This checklist covers the revised beta.
 
-For a separate Device Manager app, use the **VERTOconnect VR Beta** APK with package `com.diggerpriest.immivio360.beta`. The earlier code-32 APK without “Beta” in its asset name uses the production package and cannot be registered as a second app. The beta has its own app settings and microphone permission; configure its video source/background independently and assign it only to the test headset.
+For a separate Device Manager app, use the **code-33 VERTOconnect VR Beta** APK with package `com.diggerpriest.immivio360.beta`. The earlier code-32 APK without “Beta” in its asset name uses the production package and cannot be registered as a second app. The beta has its own app settings and microphone permission; configure its video source/background independently and assign it only to the test headset.
 
 ## Scene and audio
 
