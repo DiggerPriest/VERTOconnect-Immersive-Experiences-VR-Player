@@ -1,5 +1,12 @@
 # Mining workshop v1 — test release and acceptance record
 
+## Production approval — 3 November 2026
+
+The user approved the code-33 mining beta for release, with a final request to remove the intrusive white diagnostics. Version 0.9.5 / Android code 34 removes the automatic presence/Jess return HUD and test overlay controls, retires saved FPS preferences and retains the functional lifecycle/reporting paths. Local verification: 84 Godot tests and 61 workflow tests passed, including return/presence overlay regression coverage.
+
+The approved changes are being promoted to the fork's actual default branch, `quest-360-mono`, for tagged production release `v0.9.5`. Production uses `com.diggerpriest.immivio360` and the same signing certificate as stable .23 and test .24. The separate beta remains available. Tagged hosted checks, signed APK verification and the final download receipt are pending.
+
+
 Updated 3 November 2026. The revised beta is published as additional assets on release `v0.9.4-360.24`. All 11 existing assets retain their IDs, sizes and digests. No headset assignments or default-branch code were changed.
 
 ## Latest test APK — separate beta, code 33
@@ -38,7 +45,7 @@ Updated 3 November 2026. The revised beta is published as additional assets on r
 
 The user confirmed that the initial mining scene runs, with some lag, and removing/replacing the headset stops/restarts the same video at zero. They reported zoomed-in playback after replacement. The revised beta addresses that view-reset path and is ready for another test; its new behaviour, sound comfort and performance have not yet been retested on hardware. Microphone first-grant/denial/retry acceptance has not been reported.
 
-Use `docs/devices/mining-v1-headset-check.md` on one Quest. After the user approves the results, prepare the tested changes for the fork's default branch `quest-360-mono`. Do not merge/promote before that confirmation. Use DiggerPriest credentials scoped to this repository; never use rpvrt.
+Use `docs/devices/mining-v1-headset-check.md` on one Quest. The user has now approved promotion as recorded above. Use DiggerPriest credentials scoped to this repository; never use rpvrt.
 
 ## Earlier update candidate — production identity
 

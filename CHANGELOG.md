@@ -4,6 +4,20 @@
 
 Newest first, following product release milestones. Entries under 0.6.0 and earlier describe the original project; removed conversion features are historical, not current Immivio capabilities. Some development/source snapshots contained features before their product release. Original APK identifiers `0.2` and `0.4` are retained; `0.4` was also called `0.4.0` in release notes. Availability depends on device, server and media capabilities.
 
+## 0.9.5 — VERTOconnect mining workshop production release
+
+- Promote the approved mining workshop with portal, conveyors, fans, rear gallery,
+  overhead crane and the supplied factory ambience. Mining is the sole/default
+  background; remove unused environments from the APK.
+- Pause video when the headset is removed and restart the same video at zero
+  when worn again. Reset immersive zoom for handover and subsequent recentering.
+- Request microphone permission before loading Talk to Jess so approval can take
+  effect without restarting the player.
+- Remove automatic headset/Jess diagnostic text and on-screen test controls,
+  including previously saved FPS-overlay preferences.
+- Publish the production application identity `com.diggerpriest.immivio360`, using
+  the established signing key and Android version code 34. The beta stays separate.
+
 ## 0.9.4-360.24 — Training hub headset test
 
 - Add the optional VERTOconnect Training Hub with four animated trade workers,

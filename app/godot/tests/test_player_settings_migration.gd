@@ -13,6 +13,7 @@ func _initialize() -> void:
 		return
 	var settings := ConfigFile.new()
 	settings.set_value("effects", "auto_3d", true)
+	settings.set_value("ui", "show_fps", true)
 	settings.set_value("appearance", "background", "verto")
 	settings.set_value("effects", "source_mask", "embedded")
 	settings.set_value("alpha", "model", "quality")
@@ -27,6 +28,7 @@ func _initialize() -> void:
 	settings.set_value("video", "mode_lock", source_lock)
 	settings.set_value("photo", "mode_lock", {"geometry": 3, "layout": 2, "depth": false})
 	check(Migration.apply(settings), "Legacy effect configuration requires a migration")
+	check(not settings.has_section_key("ui", "show_fps"), "Saved diagnostic overlays are retired")
 	check(settings.get_value("appearance", "background") == "mining_facility", "Retired background preferences migrate to mining")
 	check(
 		not settings.has_section("alpha") and not settings.has_section_key("video", "alpha_fps"),

@@ -96,13 +96,13 @@ func _run() -> void:
 	main.recent_menu.refresh()
 	check(
 		(
-			main.recent_menu.rows.size() == 4
+			main.recent_menu.rows.size() == 3
 			and main.recent_menu.rows[0].choices.size() == 4
 			and main.recent_menu.rows[0].choices[0].value == Quality.AUTO
 			and main.recent_menu.rows[1].choices.size() == 4
-			and main.recent_menu.rows[2].key == "show_fps"
+			and main.recent_menu.rows[2].key == "controls_opacity"
 		),
-		"Quality and sharpness each occupy one field with all their choices, followed by the FPS display"
+		"Quality and sharpness each occupy one field with all their choices, without a diagnostic display"
 	)
 	main._on_setting_changed("display_quality", 2)
 	main._on_setting_changed("sharpness", 0.4)

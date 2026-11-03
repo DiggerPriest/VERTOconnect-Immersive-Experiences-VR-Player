@@ -119,7 +119,7 @@ func _run() -> void:
 		await process_frame
 	check(main.training_hub.ready_to_show() and main.training_hub.active, "Main app activates optional hub")
 	main._on_setting_changed("training_hub_diagnostics", true)
-	check(main.training_hub.diagnostics_enabled and main._library_settings().training_hub_diagnostics, "Settings control reaches diagnostics and reflects current state")
+	check(not main.training_hub.diagnostics_enabled and not main._library_settings().training_hub_diagnostics, "Release controls cannot enable the test diagnostic overlay")
 	main._jess_opened = true
 	main._update_training_hub_activity()
 	check(not main.training_hub.content.visible, "Opening Jess suspends the real main-app scenery")

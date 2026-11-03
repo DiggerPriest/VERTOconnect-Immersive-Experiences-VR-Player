@@ -26,7 +26,6 @@ const PlayerMenu := preload("res://scripts/player_menu.gd")
 const MediaSurface := preload("res://scripts/media_surface.gd")
 const I18n := preload("res://scripts/i18n.gd")
 const PlatformMethods := preload("res://scripts/platform_methods.gd")
-const FpsOverlay := preload("res://scripts/fps_overlay.gd")
 const Background := preload("res://scripts/app_background.gd")
 const ViewFollow := preload("res://scripts/view_follow.gd")
 
@@ -56,9 +55,6 @@ var low_end_gpu := false
 var status_label: Label3D
 var _jess_opened := false
 var _jess_xr_lost_focus := false
-var _jess_diagnostic_until := 0
-var _jess_diagnostic_next := 0
-var _jess_diagnostic_label: Label3D
 var _handover_absent := false
 var _native_wearer_absent := false
 var _presence_source := "no event yet"
@@ -208,10 +204,6 @@ func _record_presence_diagnostic(present: bool, source: String) -> void:
 	if not present:
 		_presence_last_absence = source
 		_presence_absence_count += 1
-	if _presence_absence_count > 0:
-		# Reuse the existing temporary diagnostic, without changing Jess/focus state.
-		_jess_diagnostic_until = Time.get_ticks_msec() + 30000
-		_jess_diagnostic_next = 0
 
 
 func _presence_diagnostic_text() -> String:
@@ -293,6 +285,7 @@ func _ready() -> void:
 	board.name = "CalibrationBoard"
 	add_child(board)
 	status_label = Label3D.new()
+	status_label.visible = false
 	status_label.position = Vector3(0, 2.45, -2)
 	status_label.font_size = 22
 	status_label.pixel_size = 0.003
@@ -316,10 +309,6 @@ func _ready() -> void:
 	)
 	reclining_mode = bool(settings.get_value("ui", "reclining_mode", false))
 	I18n.use(str(settings.get_value("ui", "language", "auto")))
-	fps_overlay = FpsOverlay.new()
-	fps_overlay.source = _fps_sample
-	camera.add_child(fps_overlay)
-	fps_overlay.set_shown(bool(settings.get_value("ui", "show_fps", false)))
 	# Global quality also applies to menus and backgrounds.
 	display_quality = Quality.load_quality(settings)
 	if gpu_adapter.is_empty():
@@ -601,7 +590,6 @@ func _apply_system_recenter() -> void:
 
 func _process(delta: float) -> void:
 	_update_training_hub_activity()
-	_update_jess_diagnostic()
 	if _handover_recenter_after > 0 and Time.get_ticks_msec() >= _handover_recenter_after and _head_tracked() and _head_pose() != null:
 		_handover_recenter_after = 0
 		_recenter()
@@ -720,7 +708,7 @@ func _on_input_session_changed() -> void:
 		if display.session_state != "session_focussed":
 			_jess_xr_lost_focus = true
 		elif _jess_xr_lost_focus:
-			_begin_jess_return_diagnostic()
+			_finish_jess_return()
 	_input._on_input_session_changed()
 
 
@@ -1214,59 +1202,15 @@ func _on_android_lifecycle(event: String) -> void:
 	Log.record("android_lifecycle", {"event": event})
 	if event == "resume":
 		if _jess_opened:
-			_begin_jess_return_diagnostic()
+			_finish_jess_return()
 		request_capabilities()
 	elif event == "pause" and video:
 		video.checkpoint_playback()
 
 
-func _begin_jess_return_diagnostic() -> void:
+func _finish_jess_return() -> void:
 	_jess_opened = false
-	_jess_diagnostic_until = Time.get_ticks_msec() + 30000
-	_jess_diagnostic_next = 0
-
-
-func _update_jess_diagnostic() -> void:
-	if _jess_diagnostic_until == 0:
-		return
-	var now := Time.get_ticks_msec()
-	if now >= _jess_diagnostic_until:
-		_jess_diagnostic_until = 0
-		if is_instance_valid(_jess_diagnostic_label):
-			_jess_diagnostic_label.queue_free()
-			_jess_diagnostic_label = null
-		return
-	if now < _jess_diagnostic_next or not is_instance_valid(xr_camera):
-		return
-	_jess_diagnostic_next = now + 500
-	if not is_instance_valid(_jess_diagnostic_label):
-		_jess_diagnostic_label = Label3D.new()
-		_jess_diagnostic_label.position = Vector3(0, 0.55, -1.8)
-		_jess_diagnostic_label.font_size = 22
-		_jess_diagnostic_label.pixel_size = 0.002
-		_jess_diagnostic_label.outline_size = 5
-		xr_camera.add_child(_jess_diagnostic_label)
-	var hands := _hand_input_report()
-	var left: Dictionary = hands.get("left_hand", {})
-	var right: Dictionary = hands.get("right_hand", {})
-	var android_focus := "unknown"
-	if platform_plugin and PlatformMethods.supports(platform_plugin, "has_android_window_focus"):
-		android_focus = "yes" if platform_plugin.has_android_window_focus() else "no"
-	_jess_diagnostic_label.text = "Return diagnostic | Android focus: %s | XR: %s | Head: %s\nL: ray %s, joints %s, optical %s, aim %s | R: ray %s, joints %s, optical %s, aim %s" % [
-		android_focus,
-		display.session_state,
-		"yes" if _head_tracked() else "no",
-		"yes" if left.get("tracked", false) else "no",
-		"yes" if left.get("joint_tracking", false) else "no",
-		"yes" if left.get("optical_tracking", false) else "no",
-		"yes" if left.get("meta_aim_tracked", false) or left.get("action_aim_tracked", false) else "no",
-		"yes" if right.get("tracked", false) else "no",
-		"yes" if right.get("joint_tracking", false) else "no",
-		"yes" if right.get("optical_tracking", false) else "no",
-		"yes" if right.get("meta_aim_tracked", false) or right.get("action_aim_tracked", false) else "no"
-	]
-
-	_jess_diagnostic_label.text += "\n" + _presence_diagnostic_text()
+	_jess_xr_lost_focus = false
 
 
 func _save_report() -> void:
@@ -1305,65 +1249,11 @@ func _save_report() -> void:
 
 
 func _update_status() -> void:
-	if not status_label:
-		return
-	var mode := "Passthrough" if display.applied_passthrough else "Opaque"
-	var detail := "Desktop preview" if display.preview else display.session_state
-	status_label.position.y = 2.45
-	status_label.visible = OS.get_cmdline_user_args().has("--show-diagnostics")
-	calibration_board.visible = (
-		status_label.visible and not (video and video.panel and video.panel.visible)
-	)
-	if not status_label.visible:
-		return
-	status_label.text = (
-		"VERTOconnect VR Player\n%s | %s\nLeft Menu / Tab: player menu\nPoint with a controller and press trigger to select\nA,X / O: open file   Grip / Space: play,pause\nLeft click / P: projection   Right click: reset view\nLeft stick: seek 20s   Right stick / arrows: seek 10s\nB / R: recenter   Trigger / T: Alpha,background\nV: fixture"
-		% [mode, detail]
-	)
-	if video:
-		status_label.text += (
-			"\n%s | %s | %s | %s\n%s | RVM %s"
-			% [
-				video.display_name.left(42),
-				video.media.state,
-				"SBS" if video.stereo_sbs else "2D",
-				video.layout_snapshot().geometry,
-				(
-					"Alpha on"
-					if video.alpha_enabled
-					else ("Preparing Alpha" if video.alpha_requested else "Normal playback")
-				),
-				video.profile
-			]
-		)
-		status_label.text += (
-			"\n%.1f / %.1f s | %s | loop %s"
-			% [
-				video.control.observed_position_ms / 1000.0,
-				video.control.duration_ms / 1000.0,
-				video.control.snapshot().state,
-				"on" if video.loop_enabled else "off"
-			]
-		)
-		status_label.text += (
-			"\nAudio track: %s · System volume"
-			% str(video.media.playback.get("details", {}).get("audio_track_id", "none"))
-		)
-		status_label.text += (
-			"\nSubtitles: %s | C: track"
-			% (
-				"off"
-				if video.subtitles.requested_track == 0
-				else str(video.subtitles.requested_track)
-			)
-		)
-		status_label.text += "\nEyes: %s | E: swap" % ("R/L" if video.swap_eyes else "L/R")
-		if not video.picker_error.is_empty():
-			status_label.text += "\n" + video.picker_error
-		if not video.media.error.is_empty():
-			status_label.text += "\n" + video.media.error
-	if not display.error_code.is_empty():
-		status_label.text += "\n" + display.error_code
+	# Runtime reports remain available in diagnostics files, without a HUD.
+	if status_label:
+		status_label.hide()
+	if calibration_board:
+		calibration_board.hide()
 
 
 func _on_playback_adjustment(key: String, value: Variant) -> void:

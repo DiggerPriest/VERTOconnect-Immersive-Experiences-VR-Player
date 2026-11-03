@@ -2,6 +2,7 @@ extends RefCounted
 ## Retire removed effect preferences while preserving ordinary playback data.
 
 const RETIRED_KEYS := [
+	["ui", "show_fps"],
 	["effects", "auto_3d"],
 	["video", "depth_strength"],
 	["photo", "depth_strength"],

@@ -107,7 +107,7 @@ func _on_setting_changed(key: String, value: Variant) -> void:
 				host._save_background()
 		"training_hub_diagnostics":
 			if host.training_hub:
-				host.training_hub.diagnostics_enabled = bool(value)
+				host.training_hub.diagnostics_enabled = false
 		"background_yaw":
 			if value is bool:
 				host.background.rotate_sky()
@@ -122,8 +122,8 @@ func _on_setting_changed(key: String, value: Variant) -> void:
 			host._save_background()
 		"show_fps":
 			if host.fps_overlay:
-				host.fps_overlay.set_shown(bool(value))
-			host.settings.set_value("ui", "show_fps", bool(value))
+				host.fps_overlay.set_shown(false)
+			host.settings.set_value("ui", "show_fps", false)
 			host.settings.save(host.settings_path)
 			if host.player_menu and host.player_menu.visible:
 				host.player_menu.refresh()

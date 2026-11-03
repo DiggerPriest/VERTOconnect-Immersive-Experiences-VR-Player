@@ -927,14 +927,6 @@ func _rebuild_rows() -> void:
 					)
 				)
 				rows.append(
-					_choice_row(
-						"Show FPS",
-						"show_fps",
-						bool(settings.get("show_fps", false)),
-						[{"value": false, "label": "Off"}, {"value": true, "label": "On"}]
-					)
-				)
-				rows.append(
 					{
 						"title": I18n.t("Control bar opacity"),
 						"key": "controls_opacity",
@@ -979,7 +971,6 @@ func _rebuild_rows() -> void:
 					rows.append(row)
 			elif tab == BACKGROUND_TAB:
 				rows.append(_choice_row("Background", "background", "mining_facility", [{"value": "mining_facility", "label": "Mining Facility — Animated (default)"}]))
-				rows.append(_choice_row("Performance diagnostics (this session)", "training_hub_diagnostics", bool(settings.get("training_hub_diagnostics", false)), [{"value": false, "label": "Off"}, {"value": true, "label": "On"}]))
 			elif tab == ABOUT_TAB:
 				if _about_page == 3:
 					var licenses: Variant = JSON.parse_string(

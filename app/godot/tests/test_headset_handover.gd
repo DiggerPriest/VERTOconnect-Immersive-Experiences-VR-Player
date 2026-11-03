@@ -91,7 +91,7 @@ func _initialize() -> void:
 	main._on_native_presence_changed(true, "screen_on")
 	check(main._hub_wearer_present, "Native return releases absence gate")
 	check("Last off: screen_off" in main._presence_diagnostic_text(), "On-screen return retains removal evidence")
-	check(main._jess_diagnostic_until > Time.get_ticks_msec(), "Presence return makes diagnostic visible for test")
+	check(not main.has_method("_update_jess_diagnostic"), "Presence return has no diagnostic overlay renderer")
 	main._on_openxr_presence_changed(false)
 	check("Source: OpenXR" in main._presence_diagnostic_text(), "XR events are labelled separately")
 	main.free()
