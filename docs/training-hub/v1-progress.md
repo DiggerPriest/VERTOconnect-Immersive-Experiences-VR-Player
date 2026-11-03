@@ -4,6 +4,8 @@ Published 3 November 2026 as an additional asset on release `v0.9.4-360.24`. The
 
 ## Published APK
 
+This APK uses the production package identity: it is an update candidate, not a side-by-side beta. Meta Device Manager rejected adding it as a second app because that package already exists. A separate signed beta build is being prepared with `VERTO_ANDROID_CHANNEL=beta`, package `com.diggerpriest.immivio360.beta`, label **VERTOconnect VR Beta**. Production remains the default build channel; only the manually dispatched beta build selects the separate identity.
+
 - URL: https://github.com/DiggerPriest/VERTOconnect-Immersive-Experiences-VR-Player/releases/download/v0.9.4-360.24/VERTOconnect-Quest-Mining-v1-code32-20261103.apk
 - SHA-256: `a22c16a852aa73369efb5e73f250571f5745cff8672edf0e7708350c401ad574`
 - Size: 369,621,363 bytes; Android version code 32; version name 0.9.4.

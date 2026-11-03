@@ -203,6 +203,44 @@ class DependencyBoundaries(unittest.TestCase):
 
 
 class VariantIdentityBoundaries(unittest.TestCase):
+    def setUp(self):
+        channel = patch.dict(os.environ, {
+            "VERTO_ANDROID_CHANNEL": "production", "IMMIVIO_DEVELOPMENT_PACKAGE": "0"
+        })
+        channel.start()
+        self.addCleanup(channel.stop)
+
+    def test_beta_identity_supports_signed_release_and_isolates_all_presets(self):
+        with (
+            patch.dict(os.environ, {"VERTO_ANDROID_CHANNEL": "beta"}),
+            tempfile.TemporaryDirectory() as directory,
+            patch.object(builder, "PROJECT", Path(directory)),
+        ):
+            identity = builder.android_identity("Release")
+            self.assertEqual(identity, {
+                "application_id": "com.diggerpriest.immivio360.beta",
+                "application_label": "VERTOconnect VR Beta",
+            })
+            path = Path(directory) / "export_presets.cfg"
+            original = ('package/unique_name="original"\npackage/name="Original"\n' * 3).encode()
+            path.write_bytes(original)
+            with builder.variant_export_presets():
+                self.assertEqual(path.read_text().count(
+                    'package/unique_name="com.diggerpriest.immivio360.beta"'), 3)
+                self.assertEqual(path.read_text().count(
+                    'package/name="VERTOconnect VR Beta"'), 3)
+            self.assertEqual(path.read_bytes(), original)
+
+    def test_unknown_or_conflicting_channel_is_rejected(self):
+        with patch.dict(os.environ, {"VERTO_ANDROID_CHANNEL": "betaa"}):
+            with self.assertRaisesRegex(RuntimeError, "production or beta"):
+                builder.android_identity("Release")
+        with patch.dict(os.environ, {
+            "VERTO_ANDROID_CHANNEL": "beta", "IMMIVIO_DEVELOPMENT_PACKAGE": "1"
+        }):
+            with self.assertRaisesRegex(RuntimeError, "cannot be combined"):
+                builder.android_identity("Debug")
+
     def test_development_identity_is_separate_and_rejects_release(self):
         with patch.dict(os.environ, {"IMMIVIO_DEVELOPMENT_PACKAGE": "1"}):
             self.assertEqual(builder.android_identity("Debug")["application_id"],

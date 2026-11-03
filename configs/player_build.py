@@ -418,12 +418,22 @@ def android_identity(build_type=None):
     # A separate developer identity avoids sharing another application's store
     # entitlement and keeps acceptance fixtures/settings away from real user data.
     development = os.environ.get("IMMIVIO_DEVELOPMENT_PACKAGE") == "1"
+    channel = os.environ.get("VERTO_ANDROID_CHANNEL", "production")
+    if channel not in ("production", "beta"):
+        raise RuntimeError("VERTO_ANDROID_CHANNEL must be production or beta")
+    if development and channel != "production":
+        raise RuntimeError("Development and beta package identities cannot be combined")
     if development:
         if build_type is not None and build_type != "Debug":
             raise RuntimeError("The isolated development package requires Debug")
         return {
             "application_id": "com.northboundwisdom.immivio.dev",
             "application_label": "Immivio Dev",
+        }
+    if channel == "beta":
+        return {
+            "application_id": "com.diggerpriest.immivio360.beta",
+            "application_label": "VERTOconnect VR Beta",
         }
     return {"application_id": "com.diggerpriest.immivio360", "application_label": "VERTOconnect VR Player"}
 
@@ -780,7 +790,10 @@ def prepare_training_hub_textures(godot, env):
 def package(args, env, sdk):
     prepare_training_hub_textures(export_executable(args.godot), env)
     identity = android_identity(args.build_type)
-    development_suffix = "-dev" if identity["application_id"].endswith(".dev") else ""
+    identity_suffix = next(
+        ("-" + suffix for suffix in ("dev", "beta")
+         if identity["application_id"].endswith("." + suffix)), ""
+    )
     variant = args.build_type.lower()
     templates, engine = template_directory(args, env)
     env = signing_environment(env, build_type=args.build_type)
@@ -790,7 +803,7 @@ def package(args, env, sdk):
     platform_name = {"Quest": "QUEST", "Pico": "PICO", "OpenXR": "OpenXR"}[args.vendor]
     output = (
         ROOT
-        / f"artifacts/Immivio{development_suffix}-{platform_name}-{version}-{variant}-{datetime.now():%Y%m%d}.apk"
+        / f"artifacts/Immivio{identity_suffix}-{platform_name}-{version}-{variant}-{datetime.now():%Y%m%d}.apk"
     )
     preset = {"Quest": "Quest 3", "Pico": "PICO 4", "OpenXR": "OpenXR (Experimental)"}[
         args.vendor

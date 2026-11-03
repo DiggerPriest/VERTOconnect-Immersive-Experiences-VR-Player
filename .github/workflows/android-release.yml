@@ -12,9 +12,15 @@ on:
         type: choice
         default: Debug
         options: [Debug, Release]
+      distribution_channel:
+        description: Android application identity (beta installs beside production)
+        type: choice
+        default: production
+        options: [production, beta]
 
 env:
   CI_BUILD_TYPE: ${{ startsWith(github.ref, 'refs/tags/') && 'Release' || inputs.build_type || 'Debug' }}
+  VERTO_ANDROID_CHANNEL: ${{ inputs.distribution_channel || 'production' }}
 
 permissions:
   contents: read
