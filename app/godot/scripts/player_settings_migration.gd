@@ -11,6 +11,9 @@ const RETIRED_KEYS := [
 
 static func apply(settings: ConfigFile) -> bool:
 	var changed := false
+	if settings.has_section_key("appearance", "background") and settings.get_value("appearance", "background") != "mining_facility":
+		settings.set_value("appearance", "background", "mining_facility")
+		changed = true
 	for item in RETIRED_KEYS:
 		if settings.has_section_key(item[0], item[1]):
 			settings.erase_section_key(item[0], item[1])

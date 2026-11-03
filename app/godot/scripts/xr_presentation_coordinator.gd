@@ -791,8 +791,8 @@ func _toggle_display() -> void:
 	if not host.video.local_uri.is_empty():
 		host.video.set_alpha(not host.video.alpha_wanted())
 	else:
-		host.background.select("dark" if host.background.choice == "passthrough" else "passthrough")
-		host._save_background()
+		host.temporary_passthrough = not host.temporary_passthrough
+		host._update_background()
 	host._save_report()
 
 
@@ -816,6 +816,7 @@ func _update_background() -> void:
 		return
 	if not host.background or not host.display.environment:
 		return
+	host._update_training_hub_activity()
 	var immersive = false
 	var alpha = false
 	if host.photo_active and host.photo:

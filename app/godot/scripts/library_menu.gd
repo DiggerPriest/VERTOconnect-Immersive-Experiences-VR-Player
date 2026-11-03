@@ -978,60 +978,8 @@ func _rebuild_rows() -> void:
 					)
 					rows.append(row)
 			elif tab == BACKGROUND_TAB:
-				var selected := str(settings.get("background", "belfast"))
-				var backgrounds: Array = []
-				for option in [
-					["verto", "VERTO workshop (default)", "image"],
-					["training_hub", "VERTOconnect Training Hub — Animated (preview)", "image"],
-					["mining_facility", "Mining Facility — Animated (preview)", "image"],
-					["auto_service", "Automotive workshop", "image"],
-					["aerodynamics_workshop", "Aerodynamics workshop", "image"],
-					["carpentry_shop_02", "Carpentry workshop", "image"],
-					["machine_shop_01", "Machine workshop", "image"],
-					["industrial_pipe_and_valve_02", "Industrial pipes and valves", "image"],
-					["verto_sydney", "VERTO Sydney", "image"],
-					["verto_room", "VERTO studio", "image"],
-					["belfast", "Belfast sunset", "image"],
-					["dark", "Dark background", "circle"],
-					["passthrough", "Passthrough", "eyes"]
-				]:
-					backgrounds.append({"value": option[0], "label": option[1]})
-				if settings.get("background_custom", false):
-					backgrounds.append({"value": "custom", "label": "Custom panorama"})
-				rows.append(_choice_row("Background", "background", selected, backgrounds))
-				if selected in ["training_hub", "mining_facility"]:
-					rows.append(_choice_row("Performance diagnostics (this session)", "training_hub_diagnostics", bool(settings.get("training_hub_diagnostics", false)), [{"value": false, "label": "Off"}, {"value": true, "label": "On"}]))
-				if selected in ["verto", "verto_sydney", "belfast", "custom"] or selected in preload("res://scripts/app_background.gd").INDUSTRIAL:
-					var directions: Array = []
-					for angle in range(0, 360, 45):
-						directions.append({"value": angle, "label": str(angle) + "°"})
-					rows.append(
-						_choice_row(
-							"Direction",
-							"background_yaw",
-							int(settings.get("background_yaw", 0)),
-							directions
-						)
-					)
-					rows.append(
-						_choice_row(
-							"Brightness",
-							"background_brightness",
-							float(settings.get("background_brightness", 1.0)),
-							[
-								{"value": 0.5, "label": "50%"},
-								{"value": 0.75, "label": "75%"},
-								{"value": 1.0, "label": "100%"},
-								{"value": 1.25, "label": "125%"}
-							],
-							true
-						)
-					)
-				status = (
-					"Loading…"
-					if settings.get("background_loading", false)
-					else str(settings.get("background_error", ""))
-				)
+				rows.append(_choice_row("Background", "background", "mining_facility", [{"value": "mining_facility", "label": "Mining Facility — Animated (default)"}]))
+				rows.append(_choice_row("Performance diagnostics (this session)", "training_hub_diagnostics", bool(settings.get("training_hub_diagnostics", false)), [{"value": false, "label": "Off"}, {"value": true, "label": "On"}]))
 			elif tab == ABOUT_TAB:
 				if _about_page == 3:
 					var licenses: Variant = JSON.parse_string(

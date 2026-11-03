@@ -18,10 +18,16 @@ class FakeVideo:
 	var queue := ["one", "two"]
 	var seeks: Array[int] = []
 	var pauses := 0
+	var view_zoom := 0.1
+	var view_resets := 0
+	func reset_playback_view() -> void:
+		view_zoom = 0.6
+		view_resets += 1
 	func toggle_play() -> void:
 		requested_play = not requested_play
 		pauses += 1
 	func seek_absolute(position: int) -> bool:
+		assert(is_equal_approx(view_zoom, 0.6), "Restart seek must already be fully zoomed out")
 		seeks.append(position)
 		return true
 
@@ -52,6 +58,7 @@ func _initialize() -> void:
 	check(not video.requested_play and video.pauses == 1, "Removal pauses once")
 	handover.presence_changed(true, video)
 	check(video.requested_play and video.seeks == [0], "Put-on restarts from zero")
+	check(video.view_resets == 1 and is_equal_approx(video.view_zoom, 0.6), "Handover resets zoom before resuming")
 	check(video.geometry == "360 mono" and video.queue == ["one", "two"], "Mode and queue remain")
 	handover.presence_changed(true, video)
 	check(video.seeks.size() == 1, "Repeated presence does not restart again")
@@ -59,6 +66,7 @@ func _initialize() -> void:
 	video.media.session_id = 8
 	handover.presence_changed(true, video)
 	check(video.seeks.size() == 1, "A different video session is never restarted")
+	check(video.view_resets == 1, "A different video session keeps its current view")
 	handover.presence_changed(false, null)
 	handover.presence_changed(true, video)
 	check(video.seeks.size() == 1, "Absence without an active video does nothing")

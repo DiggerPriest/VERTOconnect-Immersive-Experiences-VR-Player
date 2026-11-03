@@ -14,10 +14,21 @@ static func prepare(tree: SceneTree) -> bool:
 		finish(tree, 1)
 		return false
 	print("Test user data: ", OS.get_user_data_dir())
+	# The headless dummy renderer races RID allocation when a large imported
+	# mesh loads on a worker while UI fixtures create meshes on the main thread.
+	# Warm this shared fixture before UI construction; retain a separate cold
+	# asynchronous scene-loader test, including suspension during load.
+	if DisplayServer.get_name() == "headless" and case_name != "test_mining_environment":
+		tree.set_meta("mining_fixture", load("res://environments/mining_facility/mining_facility.tscn"))
 	return true
 
 
 static func finish(tree: SceneTree, exit_code: int) -> void:
+	# Launch scenery now loads asynchronously in every real Main fixture.
+	# Finish pending requests while script/resources are still alive, rather
+	# than racing ResourceLoader shutdown after the test calls quit().
+	for loader in tree.get_nodes_in_group("training_hub_loaders"):
+		loader.drain_pending_load()
 	print(
 		(
 			"IMMIVIO_TEST_RESULT "

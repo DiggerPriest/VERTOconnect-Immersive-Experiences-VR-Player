@@ -625,12 +625,18 @@ func open_local(
 	return id > 0
 
 
+func reset_view() -> void:
+	# Runtime recenter events can arrive after the handover reset. Every video
+	# reset must honour the same fully zoomed-out starting view.
+	super.reset_view()
+	if geometry != Geometry.Geometry.FLAT:
+		zoom_view(ZOOM_LIMITS.y - view_zoom)
+
+
 func reset_playback_view() -> void:
 	screen_rotation = 0.0
 	reset_view()
-	if geometry != Geometry.Geometry.FLAT:
-		zoom_view(ZOOM_LIMITS.y - view_zoom)
-	else:
+	if geometry == Geometry.Geometry.FLAT:
 		_apply_geometry()
 
 

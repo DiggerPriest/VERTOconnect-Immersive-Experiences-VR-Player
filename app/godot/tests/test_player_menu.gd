@@ -1117,7 +1117,7 @@ func _run() -> void:
 	check(video.view_zoom < video.ZOOM_LIMITS.y, "Menu zoom in moves immersive view inward")
 	main._on_controller_button("primary_click", "right_hand")
 	check(
-		video.view_yaw == 0.0 and video.view_pitch == 0.0 and video.view_zoom == 0.0,
+		video.view_yaw == 0.0 and video.view_pitch == 0.0 and is_equal_approx(video.view_zoom, video.ZOOM_LIMITS.y),
 		"Right stick press straightens the view"
 	)
 	video.set_projection(0)

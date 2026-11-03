@@ -23,8 +23,8 @@ func _run() -> void:
 	hub.scene_path = "res://does-not-exist-training-hub.tscn"
 	root.add_child(hub)
 	hub.set_context(true, true)
-	check(hub.failed and not hub.ready_to_show(), "Missing asset must keep panorama fallback")
-	check(hub.status_text().contains("panorama"), "Failure must explain fallback")
+	check(hub.failed and not hub.ready_to_show(), "Missing asset must report unavailable scenery")
+	check(hub.status_text().contains("unavailable"), "Failure must explain fallback")
 	hub.set_context(false, true)
 	check(hub.status_text().is_empty(), "Unselected hub must not show failure text")
 	hub.queue_free()
@@ -111,9 +111,8 @@ func _run() -> void:
 	main.settings_path = "user://hub-settings.cfg"
 	root.add_child(main)
 	main.set_process(false)
-	check(main.background.choice == "verto", "Fresh settings retain current panorama default")
-	main.training_hub.scene_path = path
-	main.background.select("training_hub")
+	check(main.background.choice == "mining_facility", "Fresh launches default to animated mining scenery")
+	check(main.training_hub.scene_path == main.training_hub.MINING_SCENE, "Launch default requests the mining scene")
 	main._update_training_hub_activity()
 	deadline = Time.get_ticks_msec() + 5000
 	while main.training_hub.loading and Time.get_ticks_msec() < deadline:
@@ -135,9 +134,8 @@ func _run() -> void:
 	main.photo_active = false
 	main._update_training_hub_activity()
 	check(main.training_hub.content.visible, "Return to idle library resumes scene")
-	main.background.select("verto")
-	main._update_training_hub_activity()
-	check(not main.training_hub.content.visible and main.display.environment.sky != null, "Switching away restores original panorama")
+	check(not main.background.select("verto"), "Retired panoramas cannot be selected")
+	check(main.background.choice == "mining_facility", "Mining stays selected after a retired choice")
 	main.queue_free()
 	await process_frame
 	DirAccess.remove_absolute(path)

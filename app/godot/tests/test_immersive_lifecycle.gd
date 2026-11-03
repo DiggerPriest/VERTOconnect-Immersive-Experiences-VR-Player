@@ -61,9 +61,9 @@ func _run() -> void:
 				aligned(main.video)
 				and main.video.view_yaw == 0
 				and main.video.view_pitch == 0
-				and main.video.view_zoom == 0
+				and is_equal_approx(main.video.view_zoom, main.video.ZOOM_LIMITS.y)
 			),
-			"Application recenter removes old offsets " + name
+			"Application recenter removes offsets and stays fully zoomed out " + name
 		)
 	# An unmarked 2:1 frame defaults to 360 mono; an explicit change aligns current gaze.
 	main.video.open_local("file:///alignment/unnamed.mp4", "unnamed.mp4")

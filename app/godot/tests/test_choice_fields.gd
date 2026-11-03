@@ -47,7 +47,7 @@ func _run() -> void:
 	I18n.use("en")
 	var state := {
 		"seek_mode": "speed",
-		"background": "belfast",
+		"background": "mining_facility",
 		"background_yaw": 0,
 		"background_brightness": 1.0,
 		"history": true
@@ -142,28 +142,12 @@ func _run() -> void:
 			selected += 1
 	check(selected == 1, "Exactly one radio is visibly selected")
 	menu._activate(Library.TAB_BASE + Library.BACKGROUND_TAB)
-	tap(menu, target(menu, "background_yaw", null, "open"))
-	check(
-		menu.choices.opened == "background_yaw" and menu.choices.popup.choices.size() == 8,
-		"Longer direction list uses a dropdown"
-	)
-	var before := events.size()
-	menu.stick_scroll(-1.0, 0.4)
-	check(
-		menu.choices.offset > 0 and events.size() == before and state.background_yaw == 0,
-		"Joystick moves only dropdown rows, preserving the current value"
-	)
-	tap(menu, target(menu, "background_yaw", 315))
-	check(
-		state.background_yaw == 315 and events.back() == ["background_yaw", 315],
-		"Scrolled dropdown exposes and selects its final option"
-	)
-	tap(menu, target(menu, "background", null, "open"))
-	point = origin(menu, target(menu, "background", "dark"))
+	check(menu.rows.any(func(row): return row.get("key", "") == "background" and row.choices.size() == 1 and row.choices[0].value == "mining_facility"), "Only the mining background is offered")
+	point = origin(menu, target(menu, "background", "mining_facility"))
 	menu.press_pointer("left_hand", point, -menu.global_basis.z, true)
 	menu.update_pointer("left_hand", Vector3.ZERO, Vector3.ZERO, false)
 	menu.release_pointer("left_hand", point, -menu.global_basis.z, true)
-	check(state.background == "belfast", "Tracking loss cancels a pending background choice")
+	check(state.background == "mining_facility", "Tracking loss cannot change the mining background")
 	menu.dismiss()
 	check(
 		menu.choices.opened.is_empty() and menu.choices.capture.is_empty(),

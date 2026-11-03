@@ -1,460 +1,67 @@
 extends SceneTree
 const Background := preload("res://scripts/app_background.gd")
 const Main := preload("res://scripts/main.gd")
-const I18n := preload("res://scripts/i18n.gd")
-
 
 class SupportedDisplay:
 	extends XrDisplay
-
 	func supports_passthrough() -> bool:
 		return true
 
-
-var checks := 0
 var failures: Array[String] = []
-var folder := "user://background_test_%d" % Time.get_ticks_usec()
-var output := ProjectSettings.globalize_path("res://../../build/output/background-preview")
-
-
-func check(value: bool, message: String) -> void:
-	checks += 1
-	if not value:
-		failures.append(message)
-
-
-func field_tap(menu: Node3D, target: int) -> void:
-	for button in menu._buttons:
-		if button.target == target:
-			var origin: Vector3 = button.node.global_position + button.node.global_basis.z
-			var direction: Vector3 = -button.node.global_basis.z
-			menu.press_pointer("left_hand", origin, direction, true)
-			menu.release_pointer("left_hand", origin, direction, true)
-			return
-
+func check(ok: bool, message: String) -> void:
+	if not ok: failures.append(message)
 
 func _initialize() -> void:
-	if not preload("res://tests/support/test_result.gd").prepare(self):
-		return
-	call_deferred("_run")
-
-
-func settle(background: Node) -> void:
-	var deadline := Time.get_ticks_msec() + 15000
-	while background.loading and Time.get_ticks_msec() < deadline:
-		await create_timer(.01).timeout
-	check(not background.loading, "Background loading completes")
-
-
-func frame(viewport: SubViewport, name: String) -> Image:
-	await process_frame
-	await RenderingServer.frame_post_draw
-	await RenderingServer.frame_post_draw
-	var image := viewport.get_texture().get_image()
-	image.save_png(output.path_join(name + ".png"))
-	return image
-
-
-func check_panorama_direction() -> void:
-	var viewport := SubViewport.new()
-	viewport.size = Vector2i(256, 256)
-	viewport.own_world_3d = true
-	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-	root.add_child(viewport)
-	var world := WorldEnvironment.new()
-	world.environment = Environment.new()
-	viewport.add_child(world)
-	var camera := Camera3D.new()
-	viewport.add_child(camera)
-	# Distinguish the image centre from its joined edges in the real sky renderer.
-	var pixels := Image.create(512, 256, false, Image.FORMAT_RGB8)
-	pixels.fill(Color.BLUE)
-	pixels.fill_rect(Rect2i(0, 0, 64, 256), Color.RED)
-	pixels.fill_rect(Rect2i(448, 0, 64, 256), Color.RED)
-	pixels.fill_rect(Rect2i(224, 0, 64, 256), Color.GREEN)
-	var material := PanoramaSkyMaterial.new()
-	material.panorama = ImageTexture.create_from_image(pixels)
-	var sky := Sky.new()
-	sky.sky_material = material
-	var display := XrDisplay.new()
-	display.configure(viewport, world.environment, null, true)
-	display.set_scenery(sky)
-	var front: Image = await frame(viewport, "direction-front")
-	check(
-		front.get_pixel(128, 128).g > .8 and front.get_pixel(128, 128).r < .1,
-		"Global sky 0 degrees faces the panorama centre"
-	)
-	camera.rotation.y = PI
-	var back: Image = await frame(viewport, "direction-back")
-	check(
-		back.get_pixel(128, 128).r > .8 and back.get_pixel(128, 128).g < .1,
-		"Global panorama seam is behind the viewer"
-	)
-	camera.rotation.y = 0
-	display.set_scenery(sky, 180)
-	var rotated: Image = await frame(viewport, "direction-rotated")
-	check(
-		rotated.get_pixel(128, 128).r > .8 and rotated.get_pixel(128, 128).g < .1,
-		"User 180-degree rotation still rotates relative to the image centre"
-	)
-	viewport.queue_free()
-	await process_frame
-
+	if not preload("res://tests/support/test_result.gd").prepare(self): return
+	_run.call_deferred()
 
 func _run() -> void:
-	DirAccess.make_dir_recursive_absolute(folder)
-	DirAccess.make_dir_recursive_absolute(output)
-	if DisplayServer.get_name() != "headless":
-		await check_panorama_direction()
-	var config := ConfigFile.new()
-	config.set_value("appearance", "background", "dark")
-	config.set_value("ui", "language", "zh")
-	config.set_value("alpha", "model", "quality")
-	config.save(folder.path_join("settings.cfg"))
-	var viewport := SubViewport.new()
-	viewport.size = Vector2i(1280, 800)
-	viewport.own_world_3d = true
-	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-	root.add_child(viewport)
+	var settings := ConfigFile.new()
+	settings.set_value("appearance", "background", "verto")
+	settings.save("user://old-background.cfg")
 	var main := Main.new()
-	main.settings_path = folder.path_join("settings.cfg")
-	viewport.add_child(main)
-	check(
-		(
-			not main.settings.has_section("alpha")
-			and main.video.profile == main.video.AUTOMATIC_PROFILE
-		),
-		"Legacy model choice is removed while ordinary playback remains configured"
-	)
-	main.photo.history_enabled = false
-	main.background.directory = folder.path_join("backgrounds")
-	check(
-		(
-			main.background.choice == "dark"
-			and main.display.environment.background_mode == Environment.BG_COLOR
-		),
-		"Saved dark background applies at startup"
-	)
-	main.background.select("verto")
-	check(main.background.ready_sky() != null and not main.verto_room.visible, "Workshop panorama appears behind the menu")
-	check(main.background._material.panorama.get_size() == Vector2(8192, 4096), "Workshop panorama retains 8K source dimensions")
-	check(main.display.environment.background_mode == Environment.BG_SKY, "Workshop panorama uses the world-fixed sky renderer")
-	check(main.verto_sign.visible, "VERTO sign is visible in the trades environment")
-	var sign_labels := main.verto_sign.get_children().filter(func(child): return child is Label3D).map(func(label): return label.text)
-	check(sign_labels == ["VERTO", "connect"], "Floating sign shows the complete VERTOconnect name")
-	check(main.background.INDUSTRIAL.size() == 5, "Five additional industrial panoramas are available")
-	for path in main.background.INDUSTRIAL.values():
-		check(ResourceLoader.exists(path), "Industrial panorama is included: " + str(path))
-	main.background.select("auto_service")
-	await settle(main.background)
-	check(main.background.ready_sky() != null and main.background._industrial_loaded == "auto_service", "Industrial panorama loads on demand")
-	check(main.verto_sign.visible, "VERTOconnect sign remains visible with industrial panoramas")
-	main.background.select("verto")
-	check(main.background._industrial == null, "Unselected industrial panorama is released")
-	main.background._process(9.0)
-	check(
-		main.background._ambient_active and main.background._material.energy_multiplier < main.background.brightness,
-		"VERTO panorama receives gentle ambient lighting"
-	)
-	main.background.select("verto_room")
-	check(main.verto_room.visible, "The original VERTO room remains available")
-	main.photo_active = true
-	main.photo.local_uri = "file:///test.jpg"
-	main.photo.geometry = main.photo.Geometry.Geometry.EQUIRECT_360
-	main.background.select("verto")
-	main._update_background()
-	check(main.display.environment.background_mode != Environment.BG_SKY, "Workshop panorama is hidden during immersive playback")
-	main.background.select("verto_room")
-	check(not main.verto_room.visible, "VERTO room is hidden behind immersive media")
-	check(not main.verto_sign.visible, "VERTO sign is hidden behind immersive media")
-	check(not main.background._ambient_active, "Ambient lighting pauses during immersive media")
-	main.photo.local_uri = ""
-	main.photo_active = false
-	main._update_background()
-	check(main.verto_room.visible, "VERTO room returns after immersive media")
-	main._on_setting_changed("background", "belfast")
-	await settle(main.background)
-	check(
-		(
-			main.display.environment.background_mode == Environment.BG_SKY
-			and not viewport.transparent_bg
-		),
-		"Belfast is opaque application sky"
-	)
-	check(
-		main.background._builtin.get_size() == Vector2(8192, 4096),
-		"Packaged sky retains full 8K dimensions"
-	)
-	main.recent_menu.section = main.recent_menu.Section.SETTINGS
-	main.recent_menu.tab = main.recent_menu.BACKGROUND_TAB
-	main.recent_menu.refresh()
-	check(
-		(
-			main.recent_menu.rows[0].key == "background"
-			and main.recent_menu.rows[0].value == "belfast"
-		),
-		"Background selection is shown in one settings field"
-	)
-	main.recent_menu.stick_scroll(-1, .25)
-	var offered: Array = main.recent_menu.rows[0].choices
-	check(offered.size() >= 8 and offered[0].value == "verto" and offered[1].value == "training_hub" and offered[2].value == "mining_facility" and offered[3].value == "auto_service" and offered[7].value == "industrial_pipe_and_valve_02", "Default, animated environments, then industrial panoramas precede older backgrounds")
-	check(
-		main.background.choice == "belfast", "Menu stick scroll never changes background selection"
-	)
-	for target in main.recent_menu.choices.targets:
-		var item: Dictionary = main.recent_menu.choices.targets[target]
-		if item.kind == "open" and item.key == "background":
-			field_tap(main.recent_menu, target)
-			break
-	for target in main.recent_menu.choices.targets:
-		var item: Dictionary = main.recent_menu.choices.targets[target]
-		if item.kind == "choose" and item.key == "background" and item.value == "auto_service":
-			field_tap(main.recent_menu, target)
-			break
-	check(main.background.choice == "auto_service", "Same-hand ray/trigger selects an industrial background")
-	main._on_setting_changed("background", "belfast")
-	await settle(main.background)
-	config.load(main.settings_path)
-	check(config.get_value("appearance", "background") == "belfast", "Background choice persists")
-	main._on_setting_changed("background_yaw", true)
-	main._on_setting_changed("background_brightness", true)
-	check(
-		(
-			is_equal_approx(main.display.environment.sky_rotation.y, PI + PI / 4)
-			and main.background.brightness == 1.25
-		),
-		"Rotation applies relative to panorama centre; brightness still applies"
-	)
-	main.background.yaw = 0
-	main.background.brightness = 1
-	main.background._apply()
-	if DisplayServer.get_name() != "headless":
-		var shot: Image = await frame(viewport, "settings")
-		var sky_color := shot.get_pixel(80, 100)
-		check(
-			sky_color.r + sky_color.g + sky_color.b > .3,
-			"Panorama renders behind the current settings panel"
-		)
-		main.recent_menu.dismiss()
-		await frame(viewport, "belfast")
-	# A private copy survives navigation/deleting the original file and app restart.
-	var pixels := Image.create(512, 256, false, Image.FORMAT_RGB8)
-	pixels.fill(Color(.2, .4, .7))
-	var source := ProjectSettings.globalize_path(folder.path_join("source_360_2D.jpg"))
-	pixels.save_jpg(source)
-	main._on_library_chosen("file://" + source, "source_360_2D.jpg")
-	var deadline := Time.get_ticks_msec() + 5000
-	while main.photo.loading and Time.get_ticks_msec() < deadline:
-		await create_timer(.01).timeout
-	check(
-		main.photo.geometry == 3 and main.photo.can_background(),
-		"Full mono panorama offers use-as-background"
-	)
-	check(
-		main.display.environment.background_mode == Environment.BG_COLOR,
-		"Immersive media temporarily hides scenery"
-	)
-	main._on_photo_action("photo_background")
-	await settle(main.background)
-	check(
-		(
-			main.background.choice == "custom"
-			and not main.photo.panel.visible
-			and main.display.environment.background_mode == Environment.BG_SKY
-		),
-		"Using panorama as background closes viewer and restores app sky"
-	)
-	var saved := str(main.background.custom_path)
-	check(
-		FileAccess.file_exists(saved) and saved != source, "Background has independent private copy"
-	)
-	DirAccess.remove_absolute(source)
-	config.load(main.settings_path)
-	check(
-		(
-			config.get_value("appearance", "custom_path") == saved
-			and config.get_value("appearance", "background") == "custom"
-		),
-		"Custom background selection persists"
-	)
-	var restored := Background.new()
-	restored.directory = main.background.directory
-	restored.choice = "custom"
-	restored.custom_path = saved
-	root.add_child(restored)
-	await settle(restored)
-	check(
-		restored.ready_sky() != null and restored.error.is_empty(),
-		"Custom background reloads without original file"
-	)
-	main._on_setting_changed("background", "belfast")
-	await settle(main.background)
-	check(main.background.has_custom(), "Changing preset retains the custom choice")
-	main.photo.open_image(saved, "plain.jpg")
-	deadline = Time.get_ticks_msec() + 5000
-	while main.photo.loading and Time.get_ticks_msec() < deadline:
-		await create_timer(.01).timeout
-	check(
-		main.photo.geometry == 0 and main.display.environment.background_mode == Environment.BG_SKY,
-		"Flat photo preserves the application backdrop"
-	)
-	main.photo.set_stereo_layout(1)
-	check(not main.photo.can_background(), "Packed stereo cannot be used as a monoscopic sky")
-	main.photo.close_image()
-	main._on_setting_changed("background", "passthrough")
-	check(
-		(
-			main.background.choice == "passthrough"
-			and main.display.environment.background_mode == Environment.BG_COLOR
-			and not viewport.transparent_bg
-		),
-		"Unavailable desktop passthrough falls back to opaque dark"
-	)
-	main._on_setting_changed("background", "belfast")
-	await settle(main.background)
-	check(
-		main.display.environment.background_mode == Environment.BG_SKY,
-		"Leaving passthrough restores selected panorama"
-	)
-	check(not main.background.select("invalid"), "Unknown saved choice rejected")
-	# Simulate only XR capability; exercise the real background policy and renderer.
-	# This cannot verify Quest camera composition, which still requires the headset.
+	main.settings_path = "user://old-background.cfg"
+	root.add_child(main)
+	main.set_process(false)
+	check(main.background.choice == "mining_facility", "Retired saved backgrounds migrate to mining on launch")
+	check(Background.CHOICES == ["mining_facility"], "Only mining remains selectable")
+	for retired in ["verto", "belfast", "training_hub", "dark", "custom", "passthrough", "auto_service"]:
+		check(not main.background.select(retired), "Retired background is rejected: " + retired)
+	check(main.background.ready_sky() == null and not main.background.has_custom(), "No panorama texture or custom background is retained")
+	check(not main.background.import_photo({}, "test"), "Photos cannot replace the mining backdrop")
+	var deadline := Time.get_ticks_msec() + 20000
+	while main.training_hub.loading and Time.get_ticks_msec() < deadline:
+		await process_frame
+	check(main.training_hub.ready_to_show() and main.training_hub.active, "Mining loads as the actual launch background")
+	var menu := main.recent_menu
+	menu.section = menu.Section.SETTINGS
+	menu.tab = menu.BACKGROUND_TAB
+	menu.refresh()
+	var rows: Array = menu.rows.filter(func(row): return row.get("key", "") == "background")
+	check(rows.size() == 1 and rows[0].choices.size() == 1 and rows[0].choices[0].value == "mining_facility", "Background menu exposes only mining")
+	check(not main.photo_menu._buttons.any(func(button): return button.target == main.photo_menu.PHOTO_BACKGROUND), "Photo controls no longer offer alternate backgrounds")
 	var supported := SupportedDisplay.new()
-	supported.configure(viewport, main.display.environment, null, true)
+	supported.configure(root, main.display.environment, null, true)
 	main.display = supported
-	main.photo_active = false
 	main.video.local_uri = "smb://test/share/clip.mp4"
 	main.video.media.begin(7)
 	main.video.geometry = 1
 	main.video.alpha_requested = true
-	for choice in ["belfast", "custom", "dark", "passthrough"]:
-		main.background.select(choice)
-		main._update_background()
-		check(
-			supported.applied_passthrough and viewport.transparent_bg,
-			"Preparing Alpha uses passthrough with " + choice
-		)
-		check(
-			(
-				supported.environment.background_mode == Environment.BG_COLOR
-				and supported.environment.background_color.a == 0.0
-				and supported.environment.sky == null
-			),
-			"Alpha removes opaque environment with " + choice
-		)
-		check(main.background.choice == choice, "Alpha preserves saved background " + choice)
-	main.video.alpha_requested = false
-	main.video.alpha_enabled = true
-	main.background.select("belfast")
 	main._update_background()
-	check(
-		supported.applied_passthrough, "Displayed Alpha remains transparent during mode transition"
-	)
+	check(supported.applied_passthrough, "Alpha video still enables passthrough")
+	check(main.background.choice == "mining_facility" and not main.training_hub.active, "Alpha suspends mining without replacing the launch choice")
+	main.video.alpha_requested = false
 	main.video.alpha_enabled = false
-	main.video.alpha_requested = true
 	main.video.media.state = "ended"
 	main._update_background()
-	check(
-		(
-			not supported.applied_passthrough
-			and supported.environment.background_mode == Environment.BG_SKY
-		),
-		"Natural Alpha EOF restores saved panorama despite retained URI and Alpha preference"
-	)
-	main.video.loop_enabled = true
-	main._update_background()
-	check(supported.applied_passthrough, "Looping Alpha does not flash scenery at EOF")
-	main.video.loop_enabled = false
-	main.video.media.state = "ready"
-	main.video.requested_play = false
-	main._update_background()
-	check(supported.applied_passthrough, "Paused Alpha retains passthrough")
-	main.video.requested_play = true
+	check(not supported.applied_passthrough and main.training_hub.active, "Video end restores the mining background")
 	main.video.close_video()
-	check(
-		main.video.local_uri.is_empty() and not main.video.alpha_requested,
-		"Closing video clears playback identity and the active Alpha request"
-	)
-	main._update_background()
-	check(
-		(
-			not supported.applied_passthrough
-			and supported.environment.background_mode == Environment.BG_SKY
-		),
-		"Closing Alpha restores saved panorama"
-	)
-	main.video.media.begin(8)
-	main.video.media.state = "failed"
-	main._update_background()
-	check(
-		(
-			not supported.applied_passthrough
-			and supported.environment.background_mode == Environment.BG_SKY
-		),
-		"Failed Alpha restores saved panorama"
-	)
-	main.video.media.begin(9)
-	main.video.alpha_requested = false
-	main.video.geometry = 0
-	main._update_background()
-	check(
-		(
-			not supported.applied_passthrough
-			and supported.environment.background_mode == Environment.BG_SKY
-		),
-		"Leaving Alpha restores selected sky for flat video"
-	)
-	main.background.select("passthrough")
-	for geometry in [0, 1, 2, 3]:
-		main.video.geometry = geometry
-		main._update_background()
-		check(
-			supported.applied_passthrough,
-			"Explicit passthrough works behind video geometry %d" % geometry
-		)
-	main.video.local_uri = ""
-	main._update_background()
-	check(supported.applied_passthrough, "Passthrough stays active after closing video")
-	main.photo_active = true
-	main.photo.local_uri = "file://photo.jpg"
-	for geometry in [0, 1, 2, 3]:
-		main.photo.geometry = geometry
-		main._update_background()
-		check(
-			supported.applied_passthrough,
-			"Explicit passthrough works behind photo geometry %d" % geometry
-		)
-	main.photo.local_uri = ""
-	main.visible = false
-	if DisplayServer.get_name() != "headless":
-		var transparent_frame: Image = await frame(viewport, "passthrough-alpha")
-		check(
-			transparent_frame.get_pixel(80, 100).a == 0.0,
-			"Rendered passthrough background has zero alpha"
-		)
-	supported._on_session_event("session_begun")
-	check(
-		viewport.transparent_bg and supported.environment.background_color.a == 0.0,
-		"Session resume preserves transparent background"
-	)
-	main.background.select("dark")
-	check(
-		(
-			not supported.applied_passthrough
-			and not viewport.transparent_bg
-			and supported.environment.background_color.a == 1.0
-		),
-		"Dark is opaque and distinct from passthrough"
-	)
-	restored.queue_free()
-	viewport.queue_free()
+	main._toggle_display()
+	check(main.temporary_passthrough and supported.applied_passthrough, "Idle passthrough shortcut remains temporary")
+	main._toggle_display()
+	check(not main.temporary_passthrough and main.training_hub.active, "Leaving temporary passthrough restores mining")
+	main.queue_free()
 	await process_frame
-	for failure in failures:
-		push_error(failure)
-	print(
-		(
-			"Application background: %d checks, %d failures; previews %s"
-			% [checks, failures.size(), output]
-		)
-	)
+	for failure in failures: push_error(failure)
+	print("Mining background: ", failures.size(), " failures")
 	preload("res://tests/support/test_result.gd").finish(self, 0 if failures.is_empty() else 1)

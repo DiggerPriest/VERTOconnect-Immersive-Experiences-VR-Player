@@ -37,5 +37,6 @@ func presence_changed(present: bool, video: Variant) -> void:
 	):
 		return
 	# The normal seek pipeline retains projection, stereo and the playback queue.
+	video.reset_playback_view()
 	video.requested_play = true
 	video.seek_absolute(0)

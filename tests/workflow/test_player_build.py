@@ -16,6 +16,29 @@ from configs import player_build as builder
 
 
 class DependencyBoundaries(unittest.TestCase):
+    def test_apk_rejects_retired_scenery_before_native_inspection(self):
+        for retired in (
+            "assets/backgrounds/verto-workshop-360-8k.jpg.remap",
+            "assets/.godot/imported/electrical_worker.glb-deadbeef.scn",
+        ):
+            with (
+                self.subTest(retired=retired),
+                tempfile.TemporaryDirectory() as directory,
+                patch.object(builder, "ROOT", Path(directory)),
+                patch.object(builder, "run") as native_tool,
+            ):
+                apk = Path(directory) / "player.apk"
+                with zipfile.ZipFile(apk, "w") as archive:
+                    for library in (
+                        "libquest_media.so", "libquest_mpv.so", "libquest_render_bridge.so",
+                        "libgodot_android.so", "libmpv.so",
+                    ):
+                        archive.writestr("lib/arm64-v8a/" + library, b"fixture")
+                    archive.writestr(retired, b"retired scenery")
+                with self.assertRaisesRegex(RuntimeError, "retired background"):
+                    builder.inspect_package(apk, {}, Path(directory) / "sdk")
+                native_tool.assert_not_called()
+
     def test_apk_rejects_retired_cloud_dependencies_before_native_inspection(self):
         for retired in (
             "lib/arm64-v8a/libgojni.so",

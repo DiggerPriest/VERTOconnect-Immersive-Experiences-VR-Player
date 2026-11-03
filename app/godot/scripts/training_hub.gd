@@ -23,6 +23,7 @@ var _sample_max_delta := 0.0
 var _status: Label3D
 var _environment: Environment
 var _saved_lighting := {}
+var _exiting := false
 
 
 static func apply_preview_lighting(environment: Environment) -> void:
@@ -51,10 +52,22 @@ func _restore_lighting() -> void:
 
 
 func _exit_tree() -> void:
+	_exiting = true
 	_restore_lighting()
+	drain_pending_load()
+
+
+func drain_pending_load() -> void:
+	# A launch can be closed while the background is still loading. Drain its
+	# request before Godot releases resources during application/test shutdown.
+	if loading and not _loading_path.is_empty():
+		ResourceLoader.load_threaded_get(_loading_path)
+		loading = false
 
 
 func _ready() -> void:
+	_exiting = false
+	add_to_group("training_hub_loaders")
 	_status = Label3D.new()
 	_status.position = Vector3(0, 2.0, -2.5)
 	_status.font_size = 30
@@ -92,6 +105,8 @@ func set_scene_path(path: String) -> void:
 
 
 func set_context(wanted: bool, can_animate: bool, gates: Dictionary = {}) -> void:
+	if _exiting or is_queued_for_deletion():
+		return
 	diagnostic_context = gates
 	selected = wanted
 	active = wanted and can_animate
@@ -276,7 +291,7 @@ func status_text() -> String:
 	if not selected:
 		return ""
 	if failed:
-		return "Training hub unavailable — showing the workshop panorama"
+		return "Mining facility unavailable"
 	if loading:
 		return "Loading training hub…"
 	return ""

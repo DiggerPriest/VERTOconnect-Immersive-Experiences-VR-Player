@@ -1,21 +1,13 @@
 extends Node
-## Application scenery owns its texture independently of the image viewer's current photo.
+## The animated mining facility is the only application background.
 signal changed
 signal custom_saved(path: String, title: String, orientation: int)
-const Info := preload("res://scripts/image_info.gd")
-const BELFAST := "res://backgrounds/belfast_sunset_puresky.jpg"
-const VERTO_PANORAMA := preload("res://backgrounds/verto-workshop-360-8k.jpg")
-const VERTO_SYDNEY := preload("res://backgrounds/verto-training-panorama.png")
-const INDUSTRIAL := {
-	"auto_service": "res://backgrounds/auto_service.jpg",
-	"aerodynamics_workshop": "res://backgrounds/aerodynamics_workshop.jpg",
-	"carpentry_shop_02": "res://backgrounds/carpentry_shop_02.jpg",
-	"machine_shop_01": "res://backgrounds/machine_shop_01.jpg",
-	"industrial_pipe_and_valve_02": "res://backgrounds/industrial_pipe_and_valve_02.jpg"
-}
-const CHOICES := ["mining_facility", "training_hub", "verto", "verto_sydney", "verto_room", "belfast", "dark", "passthrough", "custom", "auto_service", "aerodynamics_workshop", "carpentry_shop_02", "machine_shop_01", "industrial_pipe_and_valve_02"]
+const DEFAULT := "mining_facility"
+const CHOICES := [DEFAULT]
+const INDUSTRIAL := {}
+var choice := DEFAULT
+# Retained preference fields let older settings load without touching user media.
 var directory := "user://backgrounds"
-var choice := "belfast"
 var custom_path := ""
 var custom_title := ""
 var custom_orientation := 1
@@ -23,262 +15,38 @@ var yaw := 0.0
 var brightness := 1.0
 var loading := false
 var error := ""
-var sky := Sky.new()
-var _material := PanoramaSkyMaterial.new()
-var _builtin: Texture2D
-var _custom: Texture2D
-var _builtin_requested := false
-var _industrial: Texture2D
-var _industrial_loaded := ""
-var _industrial_pending := ""
-var _thread: Thread
-var _job := {}
-var _generation := 0
-var _ambient_active := false
-var _ambient_time := 0.0
-var _ambient_refresh := 0.0
-
 
 func _ready() -> void:
-	sky.sky_material = _material
-	# Background only; no need for a large reflection cubemap.
-	sky.radiance_size = Sky.RADIANCE_SIZE_32
-	_material.filter = true
 	if not select(choice):
-		select("belfast")
-
+		select(DEFAULT)
 
 func select(value: String) -> bool:
 	if value not in CHOICES:
 		return false
-	if value == "custom" and not has_custom():
-		return false
-	_generation += 1
 	choice = value
-	error = ""
-	if not INDUSTRIAL.has(choice):
-		_industrial = null
-		_industrial_loaded = ""
-	if choice == "belfast" and not _builtin and not _builtin_requested:
-		_builtin_requested = ResourceLoader.load_threaded_request(BELFAST, "Texture2D") == OK
-		if not _builtin_requested:
-			error = "Background unavailable"
-	if choice == "custom" and not _custom and not _thread:
-		_start_custom(custom_path, custom_orientation, false, custom_title)
-	_request_industrial()
-	_apply()
+	changed.emit()
 	return true
-
-
-func _request_industrial() -> void:
-	if not INDUSTRIAL.has(choice) or not _industrial_pending.is_empty() or _industrial_loaded == choice:
-		return
-	_industrial = null
-	_industrial_loaded = ""
-	var result := ResourceLoader.load_threaded_request(INDUSTRIAL[choice], "Texture2D")
-	if result == OK:
-		_industrial_pending = choice
-	else:
-		error = "Background unavailable"
-
 
 func has_custom() -> bool:
-	return (
-		_custom != null
-		or (custom_path.begins_with(directory + "/") and FileAccess.file_exists(custom_path))
-	)
+	return false
 
-
-func import_photo(source: Dictionary, title: String) -> bool:
-	if _thread or source.is_empty():
-		return false
-	_generation += 1
-	return _start_custom(str(source.path), int(source.get("orientation", 1)), true, title)
-
-
-func _start_custom(path: String, orientation: int, copy: bool, title: String) -> bool:
-	# Open before dispatch: an Android photo cache may be unlinked on the next selection.
-	var input := FileAccess.open(path, FileAccess.READ)
-	if not input or input.get_length() > 256 * 1024 * 1024:
-		error = "Background unavailable"
-		changed.emit()
-		return false
-	var destination := (
-		directory.path_join(
-			"custom_%d_%d.image" % [int(Time.get_unix_time_from_system()), Time.get_ticks_usec()]
-		)
-		if copy
-		else path
-	)
-	_job = {
-		"path": destination,
-		"orientation": orientation,
-		"copy": copy,
-		"title": title,
-		"generation": _generation
-	}
-	_thread = Thread.new()
-	if _thread.start(_read_custom.bind(input, _job.duplicate(true))) != OK:
-		_thread = null
-		error = "Background unavailable"
-		changed.emit()
-		return false
-	loading = true
-	changed.emit()
-	return true
-
-
-static func _read_custom(input: FileAccess, job: Dictionary) -> Dictionary:
-	var path := str(job.path)
-	if job.copy:
-		DirAccess.make_dir_recursive_absolute(path.get_base_dir())
-		var output := FileAccess.open(path, FileAccess.WRITE)
-		if not output:
-			return {}
-		while input.get_position() < input.get_length():
-			var bytes := input.get_buffer(mini(65536, input.get_length() - input.get_position()))
-			if bytes.is_empty():
-				return {}
-			output.store_buffer(bytes)
-		output.close()
-	input.close()
-	var header := Info.read_header(path)
-	if (
-		header.is_empty()
-		or header.width > 8192
-		or header.height > 8192
-		or int(header.width) * int(header.height) > 32 * 1024 * 1024
-	):
-		return {}
-	var data := FileAccess.get_file_as_bytes(path)
-	var image := Image.new()
-	var result := (
-		image.load_jpg_from_buffer(data)
-		if header.codec == "jpg"
-		else (
-			image.load_png_from_buffer(data)
-			if header.codec == "png"
-			else image.load_webp_from_buffer(data)
-		)
-	)
-	if result != OK:
-		return {}
-	Info.orient(image, int(job.orientation))
-	if absf(float(image.get_width()) / image.get_height() - 2.0) > 0.02:
-		return {}
-	image.generate_mipmaps()
-	return {"image": image}
-
-
-func _process(delta: float) -> void:
-	if not _industrial_pending.is_empty():
-		var pending := _industrial_pending
-		var industrial_status := ResourceLoader.load_threaded_get_status(INDUSTRIAL[pending])
-		if industrial_status == ResourceLoader.THREAD_LOAD_LOADED:
-			var loaded := ResourceLoader.load_threaded_get(INDUSTRIAL[pending]) as Texture2D
-			_industrial_pending = ""
-			if choice == pending:
-				_industrial = loaded
-				_industrial_loaded = pending
-			else:
-				_request_industrial()
-			_apply()
-		elif industrial_status in [ResourceLoader.THREAD_LOAD_FAILED, ResourceLoader.THREAD_LOAD_INVALID_RESOURCE]:
-			_industrial_pending = ""
-			if choice == pending:
-				error = "Background unavailable"
-			else:
-				_request_industrial()
-			_apply()
-	if _ambient_active and choice == "verto":
-		_ambient_time += delta
-		_ambient_refresh -= delta
-		if _ambient_refresh <= 0.0:
-			_ambient_refresh = 0.1
-			_material.energy_multiplier = brightness * (0.98 + 0.02 * sin(_ambient_time * TAU / 12.0))
-	if _builtin_requested:
-		var status := ResourceLoader.load_threaded_get_status(BELFAST)
-		if status == ResourceLoader.THREAD_LOAD_LOADED:
-			_builtin = ResourceLoader.load_threaded_get(BELFAST) as Texture2D
-			_builtin_requested = false
-			_apply()
-		elif (
-			status == ResourceLoader.THREAD_LOAD_FAILED
-			or status == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE
-		):
-			_builtin_requested = false
-			error = "Background unavailable"
-			_apply()
-	if _thread and not _thread.is_alive():
-		var result: Dictionary = _thread.wait_to_finish()
-		_thread = null
-		if result.has("image"):
-			_custom = ImageTexture.create_from_image(result.image)
-			if _job.copy:
-				var previous := custom_path
-				custom_path = str(_job.path)
-				custom_title = str(_job.title)
-				custom_orientation = int(_job.orientation)
-				if int(_job.generation) == _generation:
-					choice = "custom"
-				# Persist the new reference before removing the old private copy.
-				custom_saved.emit(custom_path, custom_title, custom_orientation)
-				if previous.begins_with(directory + "/") and previous != custom_path:
-					DirAccess.remove_absolute(previous)
-		else:
-			error = "Background unavailable"
-			if _job.copy:
-				DirAccess.remove_absolute(str(_job.path))
-		_apply()
-
-
-func _apply() -> void:
-	_material.panorama = (
-		VERTO_PANORAMA if choice in ["verto", "training_hub", "mining_facility"] else (VERTO_SYDNEY if choice == "verto_sydney" else (_builtin if choice == "belfast" else (_custom if choice == "custom" else (_industrial if choice == _industrial_loaded else null))))
-	)
-	_material.energy_multiplier = brightness
-	loading = _thread != null or (choice == "belfast" and _builtin_requested) or (INDUSTRIAL.has(choice) and not _industrial_pending.is_empty())
-	changed.emit()
-
+func import_photo(_source: Dictionary, _title: String) -> bool:
+	return false
 
 func ready_sky() -> Sky:
-	return sky if _material.panorama != null else null
+	return null
 
-
-func set_ambient_active(active: bool) -> void:
-	_ambient_active = active
-	if not active:
-		_material.energy_multiplier = brightness
-
+func set_ambient_active(_active: bool) -> void:
+	pass
 
 func rotate_sky() -> void:
-	yaw = fposmod(yaw + 45.0, 360.0)
-	changed.emit()
-
+	pass
 
 func cycle_brightness() -> void:
-	brightness = 0.5 if brightness >= 1.25 else brightness + 0.25
-	_apply()
+	pass
 
+func set_yaw(_value: float) -> void:
+	pass
 
-func set_yaw(value: float) -> void:
-	if not is_finite(value):
-		return
-	yaw = fposmod(value, 360.0)
-	changed.emit()
-
-
-func set_brightness(value: float) -> void:
-	if not is_finite(value):
-		return
-	brightness = clampf(value, 0.5, 1.25)
-	_apply()
-
-
-func _exit_tree() -> void:
-	if _thread:
-		_thread.wait_to_finish()
-	if _builtin_requested:
-		ResourceLoader.load_threaded_get(BELFAST)
-	if not _industrial_pending.is_empty():
-		ResourceLoader.load_threaded_get(INDUSTRIAL[_industrial_pending])
+func set_brightness(_value: float) -> void:
+	pass

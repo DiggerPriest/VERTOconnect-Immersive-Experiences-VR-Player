@@ -68,7 +68,7 @@ TRAINING_HUB_PINS = {
     "app/godot/environments/training_hub/training_hub.glb": "26bb5f2a03eb9cdd5b168384b7539968a71d5199ce79777e21b892b56eab3226",
 }
 USER_AUDIO_PINS = {
-    "app/godot/audio/mining_background.mp3": "f03f3da851d3617443bcd2293cf9c16d3d465bcabfb6b7d7ec9fb06ada4e2bb4",
+    "app/godot/audio/mining_background.mp3": "4270756480a1566c0788383eb1c7d5ff4797008fc03399cda247fa23d947cb98",
 }
 TRAINING_HUB_REQUIRED = {
     "tools/training_hub/build_hub.py",

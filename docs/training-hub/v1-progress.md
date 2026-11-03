@@ -15,6 +15,16 @@ This APK uses the production package identity: it is an update candidate, not a 
 - CI run: https://github.com/DiggerPriest/VERTOconnect-Immersive-Experiences-VR-Player/actions/runs/41569311051 — macOS and Windows passed.
 - Downloaded APK hash matches the build receipt and GitHub asset digest. Binary Android manifest independently checked for package and version code. Mining scene, compressed textures and MP3 stream are present in the APK. Public download URL returned HTTP 200.
 
+## Beta revision — code 33 (build pending)
+
+The user reports that the mining scene runs on Quest, with some lag, and headset removal stops playback while replacement restarts the same video at zero. They found that the returned video was zoomed in. Microphone acceptance has not been reported.
+
+This revision makes mining the sole/default background, migrates retired saved background choices, removes old panorama/worker-scene assets from APK exports, uses the user-supplied `miningfactorymain.mp3` (30 seconds, stereo 48 kHz), and supplies a large gold V logo without lettering. Video reset now applies the fully zoomed-out limit both before the handover seek and on subsequent recenter events. Photo viewing retains its own reset behaviour. The separate beta package remains `com.diggerpriest.immivio360.beta`; production is still the default build identity.
+
+Regression fixtures warm the shared mining resource before UI construction under Godot’s headless dummy renderer to avoid observed concurrent RID-allocation errors. The dedicated mining environment test retains cold asynchronous loading and lifecycle coverage. Environment requests are drained at shutdown and cannot restart from teardown signals. Headset performance has not been measured by these tests.
+
+Local verification for this revision: all 83 Godot source tests and 60 workflow tests passed. A fresh signed Quest beta build is required before publication; the earlier cancelled beta build did not publish an APK.
+
 ## Scene evidence
 
 - Final source checkpoint: `build/training-hub/source-checkpoints/VERTO_pump_connections_20261103-134309.blend`.
@@ -37,6 +47,6 @@ This APK uses the production package identity: it is an update candidate, not a 
 
 ## Remaining acceptance
 
-The user agreed to test one Quest first. Use `docs/devices/mining-v1-headset-check.md`: microphone first-grant/denial/retry, same-video removal/replacement restart from zero, scene stability/performance/comfort, audio volume/loop and gating, and visual conveyor/portal/door/fan inspection.
+The initial Quest test confirmed scenery and the pause/restart sequence, with lag and the zoom issue noted above. Retest code 33 using `docs/devices/mining-v1-headset-check.md`: microphone first-grant/denial/retry, same-video removal/replacement restart from zero, scene stability/performance/comfort, audio volume/loop and gating, and visual conveyor/portal/door/fan inspection.
 
 Do not mark the overall goal complete until these device results and any resulting fixes are verified. After the user confirms the APK works, prepare the tested changes for merge into the fork's default branch `quest-360-mono`. Repository actions must use the DiggerPriest credential scoped to this project; never use rpvrt.

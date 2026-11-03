@@ -481,6 +481,20 @@ def inspect_package(path, env, sdk):
         }
         if not required <= names:
             raise RuntimeError(f"Missing packaged libraries: {required - names}")
+        retired_files = {
+            p.name for p in (PROJECT / "backgrounds").glob("*")
+            if p.suffix.lower() in (".jpg", ".jpeg", ".png")
+        }
+        retired_files.update(
+            p.name for p in (PROJECT / "environments/training_hub").glob("*")
+            if p.suffix in (".glb", ".tscn", ".png") and p.name != "surface_detail.png"
+        )
+        for name in names:
+            imported = name.partition("/.godot/imported/")[2]
+            if name.startswith("assets/backgrounds/") or any(
+                imported.startswith(filename + "-") for filename in retired_files
+            ):
+                raise RuntimeError("APK contains a retired background: " + name)
         if any(
             n.endswith("/libgojni.so")
             or n.startswith(("assets/openlist/", "assets/p115rsacipher/"))

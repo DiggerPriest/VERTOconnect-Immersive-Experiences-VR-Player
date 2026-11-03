@@ -220,8 +220,8 @@ func _run() -> void:
 	)
 	check(
 		(
-			main.background.choice == "dark"
-			and main.settings.get_value("appearance", "background") == "dark"
+			main.background.choice == "mining_facility"
+			and main.settings.get_value("appearance", "background") == "mining_facility"
 		),
 		"Temporary passthrough does not save background"
 	)
@@ -517,10 +517,10 @@ func _run() -> void:
 	main._on_setting_changed("background", "passthrough")
 	check(
 		(
-			button(main.recent_menu, Menu.TEMP_PASSTHROUGH).is_empty()
+			not button(main.recent_menu, Menu.TEMP_PASSTHROUGH).is_empty()
 			and not button(main.recent_menu, Menu.FOLLOW).is_empty()
 		),
-		"Saved passthrough hides only temporary control"
+		"Retired saved passthrough cannot remove the temporary control"
 	)
 	main._on_setting_changed("background", "dark")
 	main.display.supported = false

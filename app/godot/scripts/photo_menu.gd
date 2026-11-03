@@ -370,14 +370,6 @@ func _draw_panel() -> void:
 		int(_state.get("geometry", 0)) == 0 and not _state.get("portrait_requested", false),
 		"screen"
 	)
-	_control_button(
-		PHOTO_BACKGROUND,
-		I18n.t("Use as background"),
-		Vector2(0, -0.10),
-		0.56,
-		_state.get("can_background", false),
-		"image"
-	)
 	_status = _label(_photo_status(), Vector3(0, -0.19, 0.004), 15)
 	_status.modulate = MUTED
 	_place_device_status(Vector2(0, -0.32))

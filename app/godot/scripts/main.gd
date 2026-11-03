@@ -483,7 +483,7 @@ func _ready() -> void:
 		func(): return display.session_state
 	)
 	background = Background.new()
-	background.choice = str(settings.get_value("appearance", "background", "verto"))
+	background.choice = str(settings.get_value("appearance", "background", Background.DEFAULT))
 	background.custom_path = str(settings.get_value("appearance", "custom_path", ""))
 	background.custom_title = str(settings.get_value("appearance", "custom_title", ""))
 	background.custom_orientation = int(settings.get_value("appearance", "custom_orientation", 1))
@@ -498,12 +498,6 @@ func _ready() -> void:
 	training_hub.state_changed.connect(_update_background)
 	add_child(training_hub)
 	training_hub.configure_environment(world.environment)
-	verto_room = preload("res://scripts/verto_room.gd").new()
-	verto_room.visible = false
-	add_child(verto_room)
-	verto_sign = preload("res://scripts/verto_sign.gd").new()
-	verto_sign.visible = false
-	add_child(verto_sign)
 	_update_background()
 	if Engine.has_singleton("QuestPlayer"):
 		platform_plugin = Engine.get_singleton("QuestPlayer")
@@ -1436,6 +1430,8 @@ func _finish_app(restart: bool) -> void:
 	if _finishing_app:
 		return
 	_finishing_app = true
+	if training_hub:
+		training_hub.drain_pending_load()
 	_save_playback_adjustments()
 	video.close_video()
 	photo.close_image()
@@ -1460,7 +1456,7 @@ func _notification(what: int) -> void:
 
 
 func _update_training_hub_activity() -> void:
-	if not training_hub or not background:
+	if _finishing_app or is_queued_for_deletion() or not is_inside_tree() or not training_hub or not background:
 		return
 	var media_active: bool = photo_active or (video != null and video.has_active_presentation())
 	if background.choice in ["training_hub", "mining_facility"]:
