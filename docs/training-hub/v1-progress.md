@@ -4,7 +4,15 @@
 
 The user approved the code-33 mining beta for release, with a final request to remove the intrusive white diagnostics. Version 0.9.5 / Android code 34 removes the automatic presence/Jess return HUD and test overlay controls, retires saved FPS preferences and retains the functional lifecycle/reporting paths. Local verification: 84 Godot tests and 61 workflow tests passed, including return/presence overlay regression coverage.
 
-The approved changes are being promoted to the fork's actual default branch, `quest-360-mono`, for tagged production release `v0.9.5`. Production uses `com.diggerpriest.immivio360` and the same signing certificate as stable .23 and test .24. The separate beta remains available. Tagged hosted checks, signed APK verification and the final download receipt are pending.
+The approved changes are being promoted to the fork's actual default branch, `quest-360-mono`, for tagged production release `v0.9.5`. Production uses `com.diggerpriest.immivio360` and the same signing certificate as stable .23 and test .24. The separate beta remains available. The tagged production build and publication are complete. Both Windows and macOS passed; the public Quest APK was downloaded and independently checked against its receipt and GitHub digest. Its binary manifest confirms production package, version 0.9.5 and code 34. The signing certificate matches the installed production lineage.
+
+- Production APK: https://github.com/DiggerPriest/VERTOconnect-Immersive-Experiences-VR-Player/releases/download/v0.9.5/Immivio-QUEST-0.9.5-release-20261103.apk
+- APK SHA-256: `ad59de81d6c5527ed6102a7606b13f74fb4e2e90ccd723e754ac057c35678d8c`.
+- Size: 147,105,712 bytes (140.3 MiB).
+- Source/tag: `c245f1499babcd441311fe519f237f88e84f091c`, `v0.9.5`.
+- CI: https://github.com/DiggerPriest/VERTOconnect-Immersive-Experiences-VR-Player/actions/runs/41582470117 — all jobs passed, including publication.
+- `v0.9.5` is the latest stable release. The approved source is on `quest-360-mono`.
+- Rendered verification after presence transitions and Jess resume confirmed zero visible diagnostic labels; legacy FPS preferences and overlay controls are covered by the new regression test. No headset assignments were changed; the user will apply the new production URL/hash.
 
 
 Updated 3 November 2026. The revised beta is published as additional assets on release `v0.9.4-360.24`. All 11 existing assets retain their IDs, sizes and digests. No headset assignments or default-branch code were changed.
