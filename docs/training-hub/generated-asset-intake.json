@@ -1,0 +1,23 @@
+[
+  {
+    "file": "underground-truck-c2d50397.glb",
+    "sha256": "e125164e727a8263603d38f7295a543d6ae1dd0506038682861cfff1f623e530",
+    "bytes": 10276756,
+    "review": "not approved for scene",
+    "public_redistribution": "not yet verified; local assets only"
+  },
+  {
+    "file": "workshop-9defc971-6061-41cf-bc77-e3e38f00d8f3.glb",
+    "sha256": "a26663811f134f8d49484d600906596b931cfec3f990a6d482f1366910ed0adb",
+    "bytes": 5847180,
+    "review": "workshop B placed for user review",
+    "public_redistribution": "not yet verified; local assets only"
+  },
+  {
+    "file": "workshop-a347e282-3525-4cf0-bb50-e793cfe9c1c9.glb",
+    "sha256": "b6ba589dca4cd6243cceb479394c92189d71812138fa5881cbbc78498fadc9f5",
+    "bytes": 6129252,
+    "review": "not approved for scene",
+    "public_redistribution": "not yet verified; local assets only"
+  }
+]

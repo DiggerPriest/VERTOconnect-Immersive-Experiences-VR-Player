@@ -59,8 +59,12 @@ jobs:
         shell: bash
         run: |
           if ! gh release view "$RELEASE_TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            release_flags=()
+            case "$RELEASE_TAG" in
+              *-test.*|*-rc.*) release_flags=(--prerelease --latest=false) ;;
+            esac
             gh release create "$RELEASE_TAG" --repo "$GH_REPO" --verify-tag \
-              --title "Immivio $RELEASE_TAG" --notes-file tag-release-notes.md
+              --title "Immivio $RELEASE_TAG" --notes-file tag-release-notes.md "${release_flags[@]}"
           fi
 
   build:

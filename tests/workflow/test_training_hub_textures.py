@@ -113,6 +113,27 @@ class HubTexturePolicyTests(unittest.TestCase):
         self.assertEqual(policy.configure(self.project / 'absent'), 0)
         policy.verify(self.project / 'absent')
 
+    def test_mining_jpeg_is_scoped_and_configured(self):
+        folder = self.project / 'environments/mining_facility'
+        folder.mkdir(parents=True)
+        payload = json.dumps({'images': [{'name': 'rock', 'mimeType': 'image/jpeg', 'bufferView': 0}]}).encode()
+        (folder / 'mining_facility.glb').write_bytes(b'glTF' + struct.pack('<II', 2, len(payload) + 20) + struct.pack('<I', len(payload)) + b'JSON' + payload)
+        texture = folder / 'mining_facility_rock.jpg'
+        texture.write_bytes(b'jpeg')
+        imp = Path(str(texture) + '.import')
+        imp.write_text('compress/mode=0\nmipmaps/generate=false\ndetect_3d/compress_to=0\n')
+        self.assertIn(texture, policy.texture_paths(self.project))
+        self.assertEqual(policy.configure(self.project), 7)
+        self.assertIn('compress/mode=2', imp.read_text())
+
+    def test_mining_texture_traversal_is_rejected(self):
+        folder = self.project / 'environments/mining_facility'
+        folder.mkdir(parents=True)
+        payload = json.dumps({'images': [{'name': '../escape', 'mimeType': 'image/jpeg', 'bufferView': 0}]}).encode()
+        (folder / 'mining_facility.glb').write_bytes(b'glTF' + struct.pack('<II', 2, len(payload) + 20) + struct.pack('<I', len(payload)) + b'JSON' + payload)
+        with self.assertRaisesRegex(ValueError, 'Unsafe'):
+            policy.texture_paths(self.project)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,0 +1,62 @@
+[
+  {
+    "asset": "concrete_floor",
+    "channel": "diff",
+    "file": "build/training-hub/material-sources/concrete_floor_diff_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/concrete_floor/concrete_floor_diff_2k.jpg",
+    "bytes": 4169270,
+    "sha256": "72249ce8ba5cedd518ebb60840e882a3506a4b2a24958055d1b36752dbcfda36",
+    "source": "https://polyhaven.com/a/concrete_floor",
+    "license": "https://polyhaven.com/license"
+  },
+  {
+    "asset": "concrete_floor",
+    "channel": "nor_gl",
+    "file": "build/training-hub/material-sources/concrete_floor_nor_gl_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/concrete_floor/concrete_floor_nor_gl_2k.jpg",
+    "bytes": 4003915,
+    "sha256": "b540b5d2ecb3d9eae96dbfda158b488abae243fe5d77b3ea37cc5453015419bf",
+    "source": "https://polyhaven.com/a/concrete_floor",
+    "license": "https://polyhaven.com/license"
+  },
+  {
+    "asset": "concrete_floor",
+    "channel": "rough",
+    "file": "build/training-hub/material-sources/concrete_floor_rough_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/concrete_floor/concrete_floor_rough_2k.jpg",
+    "bytes": 2347865,
+    "sha256": "03db782c91585efd510282792338b54a89742c416ede34c8a2a65ada6fbab778",
+    "source": "https://polyhaven.com/a/concrete_floor",
+    "license": "https://polyhaven.com/license"
+  },
+  {
+    "asset": "worn_rock_natural_01",
+    "channel": "diff",
+    "file": "build/training-hub/material-sources/worn_rock_natural_01_diff_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/worn_rock_natural_01/worn_rock_natural_01_diff_2k.jpg",
+    "bytes": 3376056,
+    "sha256": "084e528a8b63684cf6cd9c9c1d44cef32a8f4c9e8404394a4a1a40c70cbf000d",
+    "source": "https://polyhaven.com/a/worn_rock_natural_01",
+    "license": "https://polyhaven.com/license"
+  },
+  {
+    "asset": "worn_rock_natural_01",
+    "channel": "nor_gl",
+    "file": "build/training-hub/material-sources/worn_rock_natural_01_nor_gl_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/worn_rock_natural_01/worn_rock_natural_01_nor_gl_2k.jpg",
+    "bytes": 3486332,
+    "sha256": "51fb7b64eda0d68babd621c43a06d89300d789f27fbe63d917cd7b6ab93365cb",
+    "source": "https://polyhaven.com/a/worn_rock_natural_01",
+    "license": "https://polyhaven.com/license"
+  },
+  {
+    "asset": "worn_rock_natural_01",
+    "channel": "rough",
+    "file": "build/training-hub/material-sources/worn_rock_natural_01_rough_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/worn_rock_natural_01/worn_rock_natural_01_rough_2k.jpg",
+    "bytes": 2166423,
+    "sha256": "1aac2cf72392f1207b5dbf880cbe0ef58d4c7eecd9dadc12640f031670969395",
+    "source": "https://polyhaven.com/a/worn_rock_natural_01",
+    "license": "https://polyhaven.com/license"
+  }
+]

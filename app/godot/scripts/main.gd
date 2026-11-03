@@ -60,6 +60,10 @@ var _jess_diagnostic_until := 0
 var _jess_diagnostic_next := 0
 var _jess_diagnostic_label: Label3D
 var _handover_absent := false
+var _native_wearer_absent := false
+var _presence_source := "no event yet"
+var _presence_last_absence := "none observed"
+var _presence_absence_count := 0
 var _handover_recenter_after := 0
 var report_timer: Timer
 var platform_plugin: Object
@@ -192,7 +196,41 @@ var reclining_mode: bool:
 		_presentation.reclining_mode = value
 
 
+func _on_native_presence_changed(present: bool, source: String) -> void:
+	_native_wearer_absent = not present
+	_record_presence_diagnostic(present, source)
+	Log.record("headset_presence", {"present": present, "source": source})
+	_on_user_presence_changed(present)
+
+
+func _record_presence_diagnostic(present: bool, source: String) -> void:
+	_presence_source = source
+	if not present:
+		_presence_last_absence = source
+		_presence_absence_count += 1
+	if _presence_absence_count > 0:
+		# Reuse the existing temporary diagnostic, without changing Jess/focus state.
+		_jess_diagnostic_until = Time.get_ticks_msec() + 30000
+		_jess_diagnostic_next = 0
+
+
+func _presence_diagnostic_text() -> String:
+	return "Wearer: %s | Source: %s | Last off: %s | Off events: %d" % [
+		("unknown" if _presence_source == "no event yet" else ("present" if _hub_wearer_present else "absent")),
+		_presence_source, _presence_last_absence, _presence_absence_count
+	]
+
+
+func _on_openxr_presence_changed(present: bool) -> void:
+	if present and _native_wearer_absent:
+		return
+	_record_presence_diagnostic(present, "OpenXR")
+	_on_user_presence_changed(present)
+
+
 func _on_user_presence_changed(present: bool) -> void:
+	if present and _native_wearer_absent:
+		return
 	_hub_wearer_present = present
 	_handover.presence_changed(present, video if not photo_active else null)
 	if not present:
@@ -335,7 +373,7 @@ func _ready() -> void:
 	video.screen_curve = clampf(float(settings.get_value("screen", "curve", 0.0)), 0.0, 1.0)
 	add_child(video)
 	if not desktop and openxr and openxr.has_signal("user_presence_changed"):
-		openxr.connect("user_presence_changed", _on_user_presence_changed)
+		openxr.connect("user_presence_changed", _on_openxr_presence_changed)
 	screen_layout.restore()
 	_update_thumbnail_protection()
 	video.sharpness = Quality.load_sharpness(settings, low_end_gpu)
@@ -473,6 +511,8 @@ func _ready() -> void:
 			platform_plugin.set_ui_language(I18n.choice)
 		platform_plugin.connect("capabilities_ready", _on_capabilities_ready)
 		platform_plugin.connect("android_lifecycle", _on_android_lifecycle)
+		if platform_plugin.has_signal("headset_presence_changed"):
+			platform_plugin.connect("headset_presence_changed", _on_native_presence_changed)
 		pass
 		request_capabilities()
 	else:
@@ -1232,6 +1272,8 @@ func _update_jess_diagnostic() -> void:
 		"yes" if right.get("meta_aim_tracked", false) or right.get("action_aim_tracked", false) else "no"
 	]
 
+	_jess_diagnostic_label.text += "\n" + _presence_diagnostic_text()
+
 
 func _save_report() -> void:
 	var report := {
@@ -1248,6 +1290,7 @@ func _save_report() -> void:
 		"video_layout": video.layout_snapshot() if video else {},
 		"active_media": "image" if photo_active else "video",
 		"hand_input": _hand_input_report(),
+		"wearer_presence": _presence_diagnostic_text(),
 		"input_visuals": input_visuals.snapshot() if input_visuals else {},
 		"background": background.choice if background else "",
 		"photo": photo.snapshot() if photo else {},
@@ -1420,7 +1463,11 @@ func _update_training_hub_activity() -> void:
 	if not training_hub or not background:
 		return
 	var media_active: bool = photo_active or (video != null and video.has_active_presentation())
-	training_hub.set_context(background.choice == "training_hub", training_hub.can_run(
+	if background.choice in ["training_hub", "mining_facility"]:
+		training_hub.set_scene_path(training_hub.MINING_SCENE if background.choice == "mining_facility" else training_hub.SCENE)
+	training_hub.set_context(background.choice in ["training_hub", "mining_facility"], training_hub.can_run(
 		media_active, _jess_opened, _hub_wearer_present, temporary_passthrough,
 		_hub_application_active, _input_focused()
-	))
+	), {"media": media_active, "jess": _jess_opened, "wearer": _hub_wearer_present,
+		"passthrough": temporary_passthrough, "application": _hub_application_active,
+		"focus": _input_focused(), "menu": recent_menu != null and recent_menu.visible})

@@ -983,6 +983,7 @@ func _rebuild_rows() -> void:
 				for option in [
 					["verto", "VERTO workshop (default)", "image"],
 					["training_hub", "VERTOconnect Training Hub — Animated (preview)", "image"],
+					["mining_facility", "Mining Facility — Animated (preview)", "image"],
 					["auto_service", "Automotive workshop", "image"],
 					["aerodynamics_workshop", "Aerodynamics workshop", "image"],
 					["carpentry_shop_02", "Carpentry workshop", "image"],
@@ -998,7 +999,7 @@ func _rebuild_rows() -> void:
 				if settings.get("background_custom", false):
 					backgrounds.append({"value": "custom", "label": "Custom panorama"})
 				rows.append(_choice_row("Background", "background", selected, backgrounds))
-				if selected == "training_hub":
+				if selected in ["training_hub", "mining_facility"]:
 					rows.append(_choice_row("Performance diagnostics (this session)", "training_hub_diagnostics", bool(settings.get("training_hub_diagnostics", false)), [{"value": false, "label": "Off"}, {"value": true, "label": "On"}]))
 				if selected in ["verto", "verto_sydney", "belfast", "custom"] or selected in preload("res://scripts/app_background.gd").INDUSTRIAL:
 					var directions: Array = []

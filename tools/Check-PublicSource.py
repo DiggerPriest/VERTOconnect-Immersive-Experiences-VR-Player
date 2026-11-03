@@ -60,11 +60,15 @@ FONT_PINS = {
 }
 # Reviewed local training geometry and CC0 character exports; never a general GLB exemption.
 TRAINING_HUB_PINS = {
+    "app/godot/environments/mining_facility/mining_facility.glb": "2a46853f1e8ef2ade8cccbd97cbfca766559da4749b7fb426be06818efacf702",
     "app/godot/environments/training_hub/carpentry_worker.glb": "b64568c1897a61f1c872fdba1fe1496aea64e43702db4be1f7cc8e100b1bd3e3",
     "app/godot/environments/training_hub/electrical_worker.glb": "ad2be90e297d8d3b5b713bfb1c236242f5cdbe47c3819f16e1f7d805cae74558",
     "app/godot/environments/training_hub/mechanical_worker.glb": "309864a9a2c0eecc24f57bfdbbb9b38db31d7dfa1809d75978a0c3abc052225e",
     "app/godot/environments/training_hub/plumbing_worker.glb": "a24f52b01146cef43bd6d0e6e72fb35b33d7cda7afc637dd8b75f9d0d75b10de",
     "app/godot/environments/training_hub/training_hub.glb": "26bb5f2a03eb9cdd5b168384b7539968a71d5199ce79777e21b892b56eab3226",
+}
+USER_AUDIO_PINS = {
+    "app/godot/audio/mining_background.mp3": "f03f3da851d3617443bcd2293cf9c16d3d465bcabfb6b7d7ec9fb06ada4e2bb4",
 }
 TRAINING_HUB_REQUIRED = {
     "tools/training_hub/build_hub.py",
@@ -113,6 +117,9 @@ def check_files(files):
         approved_mesh = name in HAND_BUFFER_PINS
         approved_font = name in FONT_PINS
         approved_hub = name in TRAINING_HUB_PINS and hashlib.sha256(data).hexdigest() == TRAINING_HUB_PINS[name]
+        approved_audio = name in USER_AUDIO_PINS and hashlib.sha256(data).hexdigest() == USER_AUDIO_PINS[name]
+        if name in USER_AUDIO_PINS and not approved_audio:
+            errors.append(f"{name}: audio differs from pinned user-provided asset")
         if name in TRAINING_HUB_PINS and not approved_hub:
             errors.append(f"{name}: training hub mesh differs from reviewed asset")
         if path.suffix.lower() == ".glb" and name not in TRAINING_HUB_PINS:
@@ -156,7 +163,7 @@ def check_files(files):
             if (
                 path.suffix.lower()
                 not in {".png", ".jpg", ".jpeg", ".webp", ".mp4", ".jar"}
-                and not approved_mesh and not approved_font and not approved_hub
+                and not approved_mesh and not approved_font and not approved_hub and not approved_audio
             ):
                 errors.append(f"{name}: unreviewed binary type")
             continue

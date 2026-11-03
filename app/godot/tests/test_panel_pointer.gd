@@ -101,6 +101,10 @@ func _run() -> void:
 			menu.ray_panel_hit(menu.to_global(sample[0]), menu.global_basis * sample[1]).is_empty(),
 			"Panel rejects parallel, rear, outside, far and invalid rays"
 		)
+	menu.update_pointer("right_hand", origin, Vector3.DOWN, true)
+	check(not pointer.line.visible and not pointer.dot.visible, "Tracked lowered ray misses UI and leaves no permanent beam")
+	menu.update_pointer("right_hand", origin, blank - origin, true)
+	check(pointer.line.visible and pointer.dot.visible, "Aiming at a panel restores hover beam before any pinch")
 	menu.cancel_pointer("right_hand")
 	check(
 		not pointer.line.visible and not pointer.dot.visible, "Tracking loss clears panel feedback"

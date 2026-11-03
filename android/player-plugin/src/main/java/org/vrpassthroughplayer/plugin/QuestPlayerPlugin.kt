@@ -5,6 +5,8 @@ import android.opengl.EGL14
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
+import android.os.Handler
+import android.os.Looper
 import android.os.Environment
 import android.text.format.DateFormat
 import androidx.media3.common.util.UnstableApi
@@ -49,6 +51,9 @@ class QuestPlayerPlugin(godot: Godot) : GodotPlugin(godot) {
     fun jess_headset_removed() {
         TalkToJessActivity.onHeadsetRemoved()
     }
+    private var presenceMonitor: HeadsetPresenceMonitor? = null
+    @Volatile private var wearerPresent = true
+    @Volatile private var mainForeground = false
     private val closed = AtomicBoolean(false)
 
     @Volatile
@@ -213,6 +218,7 @@ class QuestPlayerPlugin(godot: Godot) : GodotPlugin(godot) {
     override fun getPluginSignals() = setOf(
         SignalInfo("capabilities_ready", Int::class.javaObjectType, String::class.java),
         SignalInfo("android_lifecycle", String::class.java),
+        SignalInfo("headset_presence_changed", Boolean::class.javaObjectType, String::class.java),
         SignalInfo("photo_ready", Int::class.javaObjectType, String::class.java),
         SignalInfo("photo_preview_ready", Int::class.javaObjectType, String::class.java),
         SignalInfo("media_list", Int::class.javaObjectType, String::class.java),
@@ -695,9 +701,26 @@ class QuestPlayerPlugin(godot: Godot) : GodotPlugin(godot) {
     // Android can resume before Godot registers the plugin's native signals.
     override fun onGodotSetupCompleted() {
         signalsReady = true
+        activity?.runOnUiThread {
+            if (!closed.get() && presenceMonitor == null) {
+                val context = activity?.applicationContext ?: return@runOnUiThread
+                presenceMonitor = HeadsetPresenceMonitor(context) callback@{ present, source ->
+                    if (closed.get()) return@callback
+                    wearerPresent = present
+                    if (!present) {
+                        media.suspendForHandover(); mpv.suspendForHandover()
+                        TalkToJessActivity.onHeadsetRemoved()
+                    } else if (mainForeground) {
+                        media.resume(); mpv.resume()
+                    }
+                    if (!closed.get() && signalsReady) emitSignal("headset_presence_changed", present, source)
+                }.also { it.start() }
+            }
+        }
     }
 
     override fun onMainPause() {
+        mainForeground = false
         if (!closed.get()) {
             media.pause(); mpv.pause(); if (signalsReady) emitSignal(
                 "android_lifecycle",
@@ -707,8 +730,9 @@ class QuestPlayerPlugin(godot: Godot) : GodotPlugin(godot) {
     }
 
     override fun onMainResume() {
+        mainForeground = true
         if (!closed.get()) {
-            media.resume(); mpv.resume(); if (signalsReady) {
+            if (wearerPresent) { media.resume(); mpv.resume() }; if (signalsReady) {
                 sources.refreshLocalStorage(); emitSignal("android_lifecycle", "resume")
             }
         }
@@ -724,6 +748,7 @@ class QuestPlayerPlugin(godot: Godot) : GodotPlugin(godot) {
 
     private fun close() {
         if (closed.compareAndSet(false, true)) {
+            Handler(Looper.getMainLooper()).post { presenceMonitor?.close(); presenceMonitor = null }
             accounts.close(); photos.close(); photoPreloads.close(); photoPreviews.close(); picker.close(); subtitlePicker.close(); localAccess.close(); probe.shutdownNow(); media.shutdown(); mpv.shutdown(); sources.close()
         }
     }

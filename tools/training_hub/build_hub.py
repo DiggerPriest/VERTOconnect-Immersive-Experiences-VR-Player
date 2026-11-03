@@ -478,12 +478,20 @@ def denoise_atlas(image, destination):
     camera_data=bpy.data.cameras.new('Atlas camera')
     camera=bpy.data.objects.new('Atlas camera',camera_data)
     temp.collection.objects.link(camera); temp.camera=camera
-    temp.use_nodes=True; nodes=temp.node_tree.nodes; nodes.clear()
+    if hasattr(temp, 'compositing_node_group'):
+        tree=bpy.data.node_groups.new('Atlas denoise compositor','CompositorNodeTree')
+        tree.interface.new_socket(name='Image',in_out='OUTPUT',socket_type='NodeSocketColor')
+        temp.compositing_node_group=tree
+    else:
+        temp.use_nodes=True
+        tree=temp.node_tree
+    nodes=tree.nodes; nodes.clear()
     source=nodes.new('CompositorNodeImage'); source.image=image
-    denoise=nodes.new('CompositorNodeDenoise'); denoise.use_hdr=True
-    target=nodes.new('CompositorNodeComposite')
-    temp.node_tree.links.new(source.outputs['Image'],denoise.inputs['Image'])
-    temp.node_tree.links.new(denoise.outputs['Image'],target.inputs['Image'])
+    denoise=nodes.new('CompositorNodeDenoise')
+    if hasattr(denoise, 'use_hdr'): denoise.use_hdr=True
+    target=nodes.new('NodeGroupOutput' if hasattr(temp, 'compositing_node_group') else 'CompositorNodeComposite')
+    tree.links.new(source.outputs['Image'],denoise.inputs['Image'])
+    tree.links.new(denoise.outputs['Image'],target.inputs['Image'])
     bpy.ops.render.render(write_still=True,scene=temp.name)
     bpy.data.scenes.remove(temp)
     bpy.data.objects.remove(camera,do_unlink=True)

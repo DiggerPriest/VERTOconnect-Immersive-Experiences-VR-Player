@@ -116,6 +116,16 @@ internal class LocalVideoBridge(
         sessions[id]?.let(::dispose)
     }
 
+    fun suspendForHandover() {
+        ui.post {
+            foreground = false
+            sessions.values.forEach {
+                it.requestedPlay = false
+                if (active(it)) { it.player?.playWhenReady = false; state(it) }
+            }
+        }
+    }
+
     fun pause() {
         ui.post {
             foreground = false

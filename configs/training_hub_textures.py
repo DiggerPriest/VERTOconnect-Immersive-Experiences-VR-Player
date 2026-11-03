@@ -14,9 +14,7 @@ ASSETS = ("training_hub", "electrical_worker", "plumbing_worker", "carpentry_wor
 def texture_paths(project):
     folder = Path(project) / "environments/training_hub"
     paths = []
-    if not (folder / "training_hub.glb").exists():
-        return paths
-    for stem in ASSETS:
+    for stem in ASSETS if (folder / "training_hub.glb").exists() else ():
         data = (folder / (stem + ".glb")).read_bytes()
         if data[:4] != b"glTF" or data[16:20] != b"JSON":
             raise ValueError("Invalid hub GLB: " + stem)
@@ -28,7 +26,21 @@ def texture_paths(project):
             if image.get("mimeType") != "image/png" or "bufferView" not in image:
                 raise ValueError("Hub texture must be embedded PNG")
             paths.append(folder / (stem + "_" + name + ".png"))
-    paths.append(folder / "surface_detail.png")
+    if (folder / "training_hub.glb").exists():
+        paths.append(folder / "surface_detail.png")
+    mining = Path(project) / "environments/mining_facility"
+    glb = mining / "mining_facility.glb"
+    if glb.exists():
+        data = glb.read_bytes()
+        if data[:4] != b"glTF" or data[16:20] != b"JSON":
+            raise ValueError("Invalid mining GLB")
+        document = json.loads(data[20:20 + struct.unpack_from("<I", data, 12)[0]])
+        for image in document.get("images", []):
+            name = image.get("name", "")
+            extensions = {"image/png": ".png", "image/jpeg": ".jpg"}
+            if not name or any(c in name for c in '/\\:') or name in (".", "..") or image.get("mimeType") not in extensions or "bufferView" not in image:
+                raise ValueError("Unsafe or unsupported mining texture")
+            paths.append(mining / ("mining_facility_" + name + extensions[image["mimeType"]]))
     return paths
 
 
@@ -36,7 +48,7 @@ def configure(project):
     """Return count of import files changed, failing if extraction is incomplete."""
     changed = 0
     for texture in texture_paths(project):
-        settings = texture.with_suffix(".png.import")
+        settings = Path(str(texture) + ".import")
         if not texture.is_file() or not settings.is_file():
             raise RuntimeError("Godot must extract hub textures before configuring: " + texture.name)
         source = settings.read_text()
@@ -59,7 +71,7 @@ def verify(project):
     if not cache.is_relative_to(project):
         raise RuntimeError("Unsafe imported texture directory")
     for texture in texture_paths(project):
-        source = texture.with_suffix(".png.import").read_text()
+        source = Path(str(texture) + ".import").read_text()
         if not re.search(r"(?m)^compress/mode=2$", source) or '\"vram_texture\": true' not in source:
             raise RuntimeError("Hub texture not VRAM compressed: " + texture.name)
         if not re.search(r"(?m)^mipmaps/generate=true$", source):

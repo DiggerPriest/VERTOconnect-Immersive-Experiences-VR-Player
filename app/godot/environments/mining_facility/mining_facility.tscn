@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://environments/mining_facility/mining_facility.glb" id="1"]
+[ext_resource type="Script" path="res://scripts/mining_environment.gd" id="2"]
+
+[node name="MiningFacility" type="Node3D"]
+script = ExtResource("2")
+
+[node name="Geometry" parent="." instance=ExtResource("1")]
+rotation = Vector3(0, 3.141592653589793, 0)

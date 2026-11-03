@@ -624,6 +624,7 @@ func _update_hand_input(delta: float) -> void:
 				and pointer.ray != null
 				and not host._active_menu()
 				and not host.photo_active
+				and (host.input_visuals == null or host.input_visuals.hand_visual_active(hand))
 			)
 			if mark.visible:
 				mark.global_position = pointer.ray[0]

@@ -4,6 +4,7 @@ const HandInput := preload("res://scripts/hand_pointer.gd")
 const LEFT_HAND := preload("res://models/hands/LeftHandHumanoid.gltf")
 const RIGHT_HAND := preload("res://models/hands/RightHandHumanoid.gltf")
 const CONTROLLER_HIDE_SECONDS := 3.0
+const HAND_FADE_SECONDS := 0.4
 const CONTROLLER_MOVE_METERS := 0.025
 const CONTROLLER_TURN_RADIANS := deg_to_rad(8.0)
 var use_runtime_models := true
@@ -16,7 +17,7 @@ func _ready() -> void:
 	_material = ShaderMaterial.new()
 	var shader := Shader.new()
 	# Readable in dark video environments without adding lights or disabling depth.
-	shader.code = "shader_type spatial; render_mode unshaded; uniform vec4 tint : source_color = vec4(0.72,0.79,0.85,1.0); void fragment(){ float light = 0.55 + 0.45 * max(dot(normalize(NORMAL), normalize(vec3(-0.3,0.7,0.6))),0.0); ALBEDO=tint.rgb*light; }"
+	shader.code = "shader_type spatial; render_mode unshaded; uniform vec4 tint : source_color = vec4(0.72,0.79,0.85,1.0); void fragment(){ float light = 0.55 + 0.45 * max(dot(normalize(NORMAL), normalize(vec3(-0.3,0.7,0.6))),0.0); ALBEDO=tint.rgb*light; ALPHA=tint.a; }"
 	_material.shader = shader
 	var xr := XRServer.find_interface("OpenXR")
 	var runtime := use_runtime_models and xr != null and xr.is_initialized()
@@ -46,7 +47,8 @@ func _ready() -> void:
 		var skeleton := _find_skeleton(hand_model)
 		assert(skeleton != null, "Fallback hand must contain a skeleton")
 		_add_modifier(skeleton, tracked_hand.tracker)
-		_prepare_meshes(hand_model, true)
+		var hand_material := _material.duplicate() as ShaderMaterial
+		_prepare_meshes(hand_model, true, hand_material)
 		var entry := {
 			"controller_gate": controller_gate,
 			"grip": grip,
@@ -58,6 +60,9 @@ func _ready() -> void:
 			"fb": null,
 			"hand_mesh": null,
 			"idle_seconds": 0.0,
+			"hand_idle_seconds": 0.0,
+			"hand_rest_pose": null,
+			"hand_material": hand_material,
 			"rest_pose": null,
 			"controller_model": "fallback",
 			"hand_model": "fallback"
@@ -90,7 +95,7 @@ func _ready() -> void:
 			if ClassDB.class_exists("OpenXRFbHandTrackingMesh"):
 				var mesh: Skeleton3D = ClassDB.instantiate("OpenXRFbHandTrackingMesh")
 				mesh.set("hand", 0 if side == "left" else 1)
-				mesh.set("material", _material)
+				mesh.set("material", hand_material)
 				_add_modifier(mesh, tracked_hand.tracker)
 				tracked_hand.add_child(mesh)
 				entry.hand_mesh = mesh
@@ -99,6 +104,7 @@ func _ready() -> void:
 func controller_activity(hand: String) -> void:
 	if hands.has(hand):
 		hands[hand].idle_seconds = 0.0
+		hands[hand].hand_idle_seconds = 0.0
 
 
 func update_visibility(
@@ -110,7 +116,16 @@ func update_visibility(
 			XRServer.get_tracker("/user/hand_tracker/" + hand.trim_suffix("_hand")) as XRHandTracker
 		)
 		var optical := HandInput.is_optical(tracker)
-		entry.hand_gate.visible = focused and optical
+		var hand_tracked := focused and optical
+		var hand_pose: Transform3D = entry.tracked_hand.transform
+		if not hand_tracked or not playback or interacting or _controller_moved(entry.hand_rest_pose, hand_pose):
+			entry.hand_idle_seconds = 0.0
+			entry.hand_rest_pose = hand_pose if hand_tracked else null
+		else:
+			entry.hand_idle_seconds = minf(CONTROLLER_HIDE_SECONDS + HAND_FADE_SECONDS, float(entry.hand_idle_seconds) + maxf(delta, 0.0))
+		var hand_alpha := clampf((CONTROLLER_HIDE_SECONDS + HAND_FADE_SECONDS - float(entry.hand_idle_seconds)) / HAND_FADE_SECONDS, 0.0, 1.0)
+		entry.hand_material.set_shader_parameter("tint", Color(0.72, 0.79, 0.85, hand_alpha))
+		entry.hand_gate.visible = hand_tracked and hand_alpha > 0.0
 		var tracked := focused and not optical and _pose_tracked(entry.grip)
 		var pose: Transform3D = entry.grip.transform
 		var moved := _controller_moved(entry.rest_pose, pose)
@@ -152,6 +167,10 @@ static func _controller_moved(previous: Variant, current: Transform3D) -> bool:
 		)
 		> CONTROLLER_TURN_RADIANS
 	)
+
+
+func hand_visual_active(hand: String) -> bool:
+	return hands.has(hand) and hands[hand].hand_gate.visible
 
 
 func snapshot() -> Dictionary:
@@ -210,13 +229,13 @@ static func _has_mesh(node: Node) -> bool:
 	return false
 
 
-func _prepare_meshes(node: Node, replace_material: bool) -> void:
+func _prepare_meshes(node: Node, replace_material: bool, hand_material: ShaderMaterial = null) -> void:
 	if not is_instance_valid(node):
 		return
 	if node is MeshInstance3D:
 		node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		if replace_material:
-			node.material_override = _material
+			node.material_override = hand_material if hand_material != null else _material
 		elif node.mesh:
 			for surface in node.mesh.get_surface_count():
 				var material: Material = node.get_active_material(surface)
@@ -225,7 +244,7 @@ func _prepare_meshes(node: Node, replace_material: bool) -> void:
 					material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 					node.set_surface_override_material(surface, material)
 	for child in node.get_children():
-		_prepare_meshes(child, replace_material)
+		_prepare_meshes(child, replace_material, hand_material)
 
 
 func _controller_model(left: bool) -> Node3D:

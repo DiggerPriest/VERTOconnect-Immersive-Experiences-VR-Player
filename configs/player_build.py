@@ -758,12 +758,14 @@ def prepare_training_hub_textures(godot, env):
         run([godot, "--headless", "--xr-mode", "off", "--path", PROJECT,
              "--import"], env=env, log="training-hub-texture-import.log",
             timeout=600, fail_on_engine_error=True)
-    if any(not p.is_file() or not p.with_suffix(".png.import").is_file() for p in expected):
+    if any(not p.is_file() or not Path(str(p) + ".import").is_file() for p in expected):
         import_hub()
     if textures.configure(PROJECT):
+        scoped_env = dict(env)
+        scoped_env["VERTO_HUB_TEXTURE_PATHS"] = json.dumps(["res://" + p.relative_to(PROJECT).as_posix() for p in expected])
         run([godot, "--headless", "--xr-mode", "off", "--path", PROJECT,
              "--editor", "--script", ROOT / "tools/training_hub/reimport_textures.gd"],
-            env=env, log="training-hub-texture-reimport.log", timeout=600)
+            env=scoped_env, log="training-hub-texture-reimport.log", timeout=600)
         output = (LOGS / "training-hub-texture-reimport.log").read_text()
         errors = [line for line in output.splitlines()
                   if line.startswith(("SCRIPT ERROR:", "SHADER ERROR:", "ERROR:"))

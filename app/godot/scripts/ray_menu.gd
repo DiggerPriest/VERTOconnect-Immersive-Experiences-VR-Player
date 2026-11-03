@@ -275,7 +275,9 @@ func update_pointer(hand: String, origin: Vector3, direction: Vector3, tracked: 
 		and direction.is_finite()
 		and direction.length_squared() > 0.000001
 	)
-	pointer.line.visible = valid
+	# A tracked hand may rest in the lap while aim remains valid. Only draw a
+	# beam onto an actual UI surface; hover aiming never requires a pinch.
+	pointer.line.visible = valid and not hit.is_empty()
 	pointer.dot.visible = not hit.is_empty()
 	if valid:
 		var endpoint: Vector3 = (

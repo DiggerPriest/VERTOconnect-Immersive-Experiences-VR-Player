@@ -40,3 +40,20 @@ explicitly declares v1 and requests migration.
   SHA256SUMS; ZIP integrity passed and hub resources/Android textures are present.
 - Existing panorama remains the default. No device installation or headset test
   has been observed. See [headset-test.md](headset-test.md) for the required checks.
+
+## Headset feedback on .24
+
+Ryan confirmed the optional hub loads but reported all four visible workers remain
+still after30seconds. Source and APK assets both advance bone poses on the host;
+that does not establish animation on Quest. The runtime/rendering cause remains
+unproven and needs on-device clock/bone/gate evidence.
+
+Ryan also reported playback continuing after headset removal and persistent hand
+rays. These are reopened interaction defects, not accepted regressions. Visual
+acceptance was explicitly rejected: the environment is too basic and sparse.
+Do not promote it to the default or describe the current art as finished.
+
+The next visual pass must improve scene composition and believable materials,
+people and trade activity at the actual seated viewing distance. The existing
+procedural room is a functional prototype. A convincing finished trade bay in
+Godot should be reviewed before repeating that treatment across all four bays.

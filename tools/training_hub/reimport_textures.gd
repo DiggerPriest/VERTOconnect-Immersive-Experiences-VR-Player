@@ -8,10 +8,11 @@ func _reimport() -> void:
 	while filesystem.is_scanning():
 		await process_frame
 	var paths := PackedStringArray()
-	var folder := "res://environments/training_hub/"
-	for filename in DirAccess.get_files_at(folder):
-		if filename.ends_with(".png"):
-			paths.append(folder + filename)
+	var requested = JSON.parse_string(OS.get_environment("VERTO_HUB_TEXTURE_PATHS"))
+	if requested is Array:
+		for path in requested:
+			if path is String and (path.begins_with("res://environments/training_hub/") or path.begins_with("res://environments/mining_facility/")):
+				paths.append(path)
 	if paths.is_empty():
 		push_error("No extracted training hub textures")
 		quit(1)

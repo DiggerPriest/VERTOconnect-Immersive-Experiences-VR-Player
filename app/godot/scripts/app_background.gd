@@ -13,7 +13,7 @@ const INDUSTRIAL := {
 	"machine_shop_01": "res://backgrounds/machine_shop_01.jpg",
 	"industrial_pipe_and_valve_02": "res://backgrounds/industrial_pipe_and_valve_02.jpg"
 }
-const CHOICES := ["training_hub", "verto", "verto_sydney", "verto_room", "belfast", "dark", "passthrough", "custom", "auto_service", "aerodynamics_workshop", "carpentry_shop_02", "machine_shop_01", "industrial_pipe_and_valve_02"]
+const CHOICES := ["mining_facility", "training_hub", "verto", "verto_sydney", "verto_room", "belfast", "dark", "passthrough", "custom", "auto_service", "aerodynamics_workshop", "carpentry_shop_02", "machine_shop_01", "industrial_pipe_and_valve_02"]
 var directory := "user://backgrounds"
 var choice := "belfast"
 var custom_path := ""
@@ -234,7 +234,7 @@ func _process(delta: float) -> void:
 
 func _apply() -> void:
 	_material.panorama = (
-		VERTO_PANORAMA if choice in ["verto", "training_hub"] else (VERTO_SYDNEY if choice == "verto_sydney" else (_builtin if choice == "belfast" else (_custom if choice == "custom" else (_industrial if choice == _industrial_loaded else null))))
+		VERTO_PANORAMA if choice in ["verto", "training_hub", "mining_facility"] else (VERTO_SYDNEY if choice == "verto_sydney" else (_builtin if choice == "belfast" else (_custom if choice == "custom" else (_industrial if choice == _industrial_loaded else null))))
 	)
 	_material.energy_multiplier = brightness
 	loading = _thread != null or (choice == "belfast" and _builtin_requested) or (INDUSTRIAL.has(choice) and not _industrial_pending.is_empty())

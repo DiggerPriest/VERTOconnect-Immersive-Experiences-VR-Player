@@ -841,7 +841,7 @@ func _update_background() -> void:
 		host.verto_workshop.set_brightness(host.background.brightness)
 	if host.verto_sign:
 		host.verto_sign.visible = (host.background.choice == "verto" or host.background.choice in host.background.INDUSTRIAL) and not immersive and not wants_passthrough
-	var hub_ready: bool = host.training_hub != null and host.training_hub.ready_to_show() and host.background.choice == "training_hub"
+	var hub_ready: bool = host.training_hub != null and host.training_hub.ready_to_show() and host.background.choice in ["training_hub", "mining_facility"]
 	host.display.set_scenery(
 		null if immersive or wants_passthrough or hub_ready else host.background.ready_sky(), host.background.yaw
 	)

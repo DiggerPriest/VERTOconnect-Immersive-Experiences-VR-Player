@@ -197,7 +197,30 @@ func _run() -> void:
 	trackers[1].has_tracking_data = true
 	trackers[1].hand_tracking_source = XRHandTracker.HAND_TRACKING_SOURCE_UNOBSTRUCTED
 	visuals.update_visibility(true, 10.0, true)
-	check(visuals.hands.right_hand.hand_gate.visible, "Optical hand visibility is preserved")
+	check(visuals.hands.right_hand.hand_gate.visible, "Newly acquired optical hand gets grace period")
+	visuals.update_visibility(true, 3.2, true)
+	var faded: Color = visuals.hands.right_hand.hand_material.get_shader_parameter("tint")
+	check(faded.a > 0.0 and faded.a < 1.0, "Idle optical hand smoothly fades after grace period")
+	visuals.update_visibility(true, 0.3, true)
+	check(not visuals.hand_visual_active("right_hand"), "Idle tracked optical hand and its marker hide during video")
+	check(trackers[1].has_tracking_data, "Hiding an optical hand never disables tracking")
+	var rest_hand_pose: Transform3D = visuals.hands.right_hand.tracked_hand.transform
+	visuals.hands.right_hand.tracked_hand.transform.origin += Vector3(0.001, 0, 0)
+	visuals.update_visibility(true, 0.1, true)
+	check(not visuals.hand_visual_active("right_hand"), "Optical tracking jitter cannot keep an idle model visible")
+	visuals.hands.right_hand.tracked_hand.transform.origin += Vector3(0.04, 0, 0)
+	visuals.update_visibility(true, 0.1, true)
+	check(visuals.hand_visual_active("right_hand"), "Deliberate optical hand motion wakes the model without a pinch")
+	visuals.update_visibility(true, 4.0, true)
+	visuals.hands.right_hand.tracked_hand.transform = rest_hand_pose
+	visuals.controller_activity("right_hand")
+	visuals.update_visibility(true, 0.01, true)
+	check(visuals.hand_visual_active("right_hand"), "Explicit input wakes an idle optical hand")
+	visuals.update_visibility(true, 10.0, true, true)
+	check(visuals.hand_visual_active("right_hand"), "Menu aiming remains visible before pinching")
+	visuals.update_visibility(true, 10.0, true)
+	visuals.update_visibility(true, 0.01, false)
+	check(visuals.hand_visual_active("right_hand"), "Leaving playback restores optical visuals")
 	trackers[1].has_tracking_data = false
 	await playback_checks()
 	for tracker in controllers + trackers:

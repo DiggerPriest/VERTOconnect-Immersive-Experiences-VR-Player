@@ -1000,6 +1000,11 @@ internal class MpvVideoBridge(
         sessions[id]?.let { gate.invalidate(id); dispose(it, true) }
     }
 
+    fun suspendForHandover() {
+        hosts.forEach { it.playing = false }
+        pause()
+    }
+
     fun pause() {
         lifecyclePauses.incrementAndGet()
         foreground = false; hosts.forEach {
