@@ -17,7 +17,7 @@ func run():
 	camera.position = Vector3(0, 1.25, 0)
 	camera.fov = 85
 	camera.current = true
-	var views = {"portal": Vector3(1, 2, -22), "fans": Vector3(16, 2.4, -14), "conveyor": Vector3(-13, 2, -4), "door": Vector3(-1, 2, 22)}
+	var views = {"portal": Vector3(1, 2, -22), "fans": Vector3(16, 2.4, -14), "conveyor": Vector3(-13, 2, -4), "door": Vector3(-1, 2, 22), "processing": Vector3(12, 2.5, 8), "plant": Vector3(-12, 2.5, 7)}
 	for label in views:
 		camera.look_at(views[label])
 		for frame in range(12): await process_frame

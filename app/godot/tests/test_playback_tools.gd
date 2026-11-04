@@ -61,6 +61,30 @@ func _run() -> void:
 		),
 		"Sequential queue ends without implicit wrapping"
 	)
+	queue.configure("queue_loop", true)
+	check(queue.adjacent("smb://c.mp4", 1, queue.loop).uri == "file:///a.mp4", "Loop wraps last to first")
+	check(queue.adjacent("smb://c.mp4", 1).is_empty(), "Manual next retains queue boundaries")
+	var cycle_uri := "file:///a.mp4"
+	var cycle: Array[String] = []
+	for i in 9:
+		cycle.append(cycle_uri)
+		cycle_uri = queue.adjacent(cycle_uri, 1, queue.loop).uri
+	check(cycle == ["file:///a.mp4", "smb://b.mp4", "smb://c.mp4", "file:///a.mp4", "smb://b.mp4", "smb://c.mp4", "file:///a.mp4", "smb://b.mp4", "smb://c.mp4"], "Three-video queue repeats in order over three cycles")
+	queue.replace([entries[0]])
+	check(queue.adjacent("file:///a.mp4", 1, queue.loop).uri == "file:///a.mp4", "A single queued video loops")
+	queue.clear()
+	check(queue.adjacent("file:///a.mp4", 1, queue.loop).is_empty(), "Empty loop cannot start playback")
+	for count in [2, 4, 10]:
+		var arbitrary: Array = []
+		for i in count:
+			arbitrary.append({"uri": "file:///loop-%d.mp4" % i, "title": str(i)})
+		queue.replace(arbitrary)
+		var current := str(arbitrary[0].uri)
+		for i in count * 3:
+			check(current == arbitrary[i % count].uri, "Arbitrary queue length %d retains order over repeated cycles" % count)
+			current = queue.adjacent(current, 1, queue.loop).uri
+	queue.replace(entries)
+	queue.configure("queue_loop", false)
 	queue.configure("queue_shuffle", true, "file:///a.mp4")
 	var seen := {}
 	var uri := "file:///a.mp4"
@@ -71,6 +95,10 @@ func _run() -> void:
 		seen.size() == 3,
 		"Shuffle starts with the current video, visits each remaining entry and ends"
 	)
+	var shuffled := queue._order.duplicate()
+	queue.configure("queue_loop", true)
+	check(queue._order == shuffled and queue.adjacent(shuffled.back(), 1, true).uri == shuffled.front(), "Enabling loop preserves shuffle traversal and wraps it")
+	queue.configure("queue_loop", false)
 	queue.configure("queue_shuffle", false)
 	queue.move(2, -1)
 	check(queue.items[1].uri == "smb://c.mp4", "Move changes sequence")
@@ -325,6 +353,19 @@ func _run() -> void:
 		),
 		"Confirmed EOF automatically opens next video from zero despite a legacy auto-play-off preference"
 	)
+	var loop_on_target := -1
+	for target in main.video_menu.choices.targets:
+		var option: Dictionary = main.video_menu.choices.targets[target]
+		if option.get("key") == "queue_loop" and option.get("value") == true:
+			loop_on_target = target
+			break
+	check(loop_on_target >= 0, "Loop videos On is exposed as a queue UI action")
+	main.video_menu._activate(loop_on_target)
+	check(main.playback_queue.loop, "Loop videos button reaches live playback through the menu signal")
+	var loop_settings := ConfigFile.new()
+	loop_settings.load(main.settings_path)
+	check(loop_settings.get_value("playback", "queue_loop", false), "Loop preference is saved for the next launch")
+	main._on_player_setting("queue_loop", false)
 	main._on_player_setting("queue_shuffle", true)
 	main._queue_action("queue_play_0")
 	check(
@@ -347,6 +388,8 @@ func _run() -> void:
 	var buttons: Array = main.video_menu._buttons.filter(
 		func(button): return button.enabled and button.node.visible
 	)
+	for button in buttons:
+		check(main.video_menu.capture_envelope().encloses(button.rect), "Queue controls fit the headset canvas capture envelope")
 	for i in buttons.size():
 		for j in range(i + 1, buttons.size()):
 			check(
@@ -371,6 +414,25 @@ func _run() -> void:
 		"eof_presented_slot": 1,
 		"eof_source_ticket": {"source_epoch": 2, "frame_id": 8, "pts_us": 9000000}
 	}
+	main._on_player_setting("queue_loop", true)
+	main._on_user_presence_changed(false)
+	main._advance_queue(7, "file:///next.mp4")
+	check(main.video.media.state == "ended", "Off-head EOF cannot advance or reopen a video")
+	main._on_user_presence_changed(true)
+	check(main.video.local_uri == "file:///next.mp4" and main.playback_queue.loop, "Handover keeps the same video and queue loop enabled")
+	# Model the end of the restarted presentation after its seek has completed.
+	main.video._pending_revision.clear()
+	main.video._waiting_first = false
+	main.video.media.state = "ended"
+	var opens_before_loop := host.calls.filter(func(call): return call[0] == "open").size()
+	main._advance_queue(7, "file:///next.mp4")
+	check(main.video.local_uri == "file:///next.mp4" and host.calls.filter(func(call): return call[0] == "open").size() == opens_before_loop + 1 and host.calls.filter(func(call): return call[0] == "open").back()[2] == 0, "Single-entry loop reopens the same video from zero")
+	main._on_player_setting("queue_loop", false)
+	main.video._pending_revision.clear()
+	main.video._waiting_first = false
+	main.video.media.state = "ended"
+	main.video.media.last_pair = {"contract_version": 2, "session_id": 7, "slot_token": 1, "source_epoch": 2, "frame_id": 8, "pts_us": 9000000}
+	main.video.media.playback = {"eof_source_resolved": true, "eof_pair_post_draw": true, "eof_presented_slot": 1, "eof_source_ticket": {"source_epoch": 2, "frame_id": 8, "pts_us": 9000000}}
 	main._on_video_changed()
 	main._on_video_changed()
 	await process_frame
@@ -388,7 +450,19 @@ func _run() -> void:
 		host.calls.filter(func(call): return call[0] == "close").size() == closed,
 		"Repeated EOF callback cannot close another session"
 	)
+	main._on_player_setting("queue_loop", true)
+	var restart_order := ["file:///restart-c.mp4", "file:///restart-a.mp4", "file:///restart-b.mp4"]
+	main.video_queue = [{"uri": restart_order[0], "title": "C"}, {"uri": restart_order[1], "title": "A"}, {"uri": restart_order[2], "title": "B"}]
+	main.playback_queue.custom = true
+	main._save_queue()
 	main.queue_free()
+	await process_frame
+	var relaunched := Main.new()
+	relaunched.settings_path = directory.path_join("settings.cfg")
+	root.add_child(relaunched)
+	relaunched.set_process(false)
+	check(relaunched.playback_queue.loop and relaunched.playback_queue.shuffle and relaunched.playback_queue.custom and relaunched.video_queue.map(func(item): return str(item.uri)) == restart_order, "A new app instance restores exact queue order, loop, shuffle and custom queue settings")
+	relaunched.queue_free()
 	await process_frame
 	for failure in failures:
 		push_error(failure)

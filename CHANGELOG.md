@@ -4,6 +4,20 @@
 
 Newest first, following product release milestones. Entries under 0.6.0 and earlier describe the original project; removed conversion features are historical, not current Immivio capabilities. Some development/source snapshots contained features before their product release. Original APK identifiers `0.2` and `0.4` are retained; `0.4` was also called `0.4.0` in release notes. Availability depends on device, server and media capabilities.
 
+## 0.9.6 — Expanded mining factory and persistent queue looping
+
+- Promote the code35 beta accepted by Ryan on 4 November 2026, including the
+  expanded processing and maintenance bays, wheel stands, hydraulic test bench,
+  service galleries/bridge, connected plant and animated overhead crane.
+- Add **Loop videos** to the queue. Any queue length, including a single video,
+  repeats from the first item after the final item. Each entry starts at zero.
+- Save queue contents/order, loop, shuffle and custom-queue preferences across
+  app/device restarts. Keep headset removal pause and same-video restart at zero.
+- Retain the supplied factory MP3 and existing video/Jess/headset audio gates.
+- Publish version 0.9.6 / Android code36 with the production application identity
+  `com.diggerpriest.immivio360` and the established signing key. The beta remains
+  separately installable; previous releases stay available.
+
 ## 0.9.5 — VERTOconnect mining workshop production release
 
 - Promote the approved mining workshop with portal, conveyors, fans, rear gallery,
