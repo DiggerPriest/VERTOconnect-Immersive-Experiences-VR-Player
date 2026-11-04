@@ -107,3 +107,8 @@ Published rear revision (4 November, final status for this candidate):
 - Downloaded APK v2 signature/content integrity, package identity/version and ARM64 libraries independently passed. APK-imported geometry/animation signatures match local source; all224 clips and the exact supplied MP3 are present. The packaged compiled queue script exercises single-video and multi-video wrapping.
 - Public unauthenticated download and GitHub's asset digest both match SHA25684d71eddcbed1918abacfba818c67437d02af46e17d8e9e1ecca8b1585d0be1c (148,857,728bytes).
 - Remaining acceptance: Ryan's rear-density/whole-room visual review, one-Quest queue/persistence/presence/Jess regression checks, comfort and performance. The active goal must remain open until these are accepted.
+
+User acceptance and production promotion (4 November):
+- After agreeing to test code35 on one Quest, Ryan reported "perfect, worked 100% perfect", then instructed "now we push to live". This accepts the scene and queue candidate; it does not supply independently measured Quest frame-time or thermal data.
+- Production candidate 0.9.6/code36 retains the exact accepted scene/audio and playback scripts. Only release version metadata, distribution identity and acceptance/release documentation change for promotion.
+- Merge into the actual default branch quest-360-mono, build/tag through the existing signed production pipeline, verify the published APK and deliver its distinct production URL/SHA256. Keep previous release assets and the separate beta.

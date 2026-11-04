@@ -11,7 +11,7 @@ Published candidate, verified 4 November 2026:
 - Independently checked Android package/version, ARM64 libraries, ZIP integrity, APK v2 signature/content digest and expected signing certificate. Extracted geometry and all224 animation clips match the reviewed local scene semantically; the bundled MP3 matches the supplied file SHA256. The compiled queue script passed single-entry and two-entry wrap checks. Desktop resource inspection excludes the Android-only XR extension and does not prove Android execution.
 - An unauthenticated full public download returned HTTP200 with APK content type and the same size/SHA256. GitHub's asset digest agrees. All older prerelease assets and the complete production release metadata remained unchanged.
 
-Hardware acceptance is still pending. The goal is not complete until the following checks and Ryan's scene review pass.
+Acceptance update, 4 November 2026: Ryan reported "perfect, worked 100% perfect" after agreeing to test code35, then requested "now we push to live". This is user-reported headset and visual acceptance, not an independently captured frame-time/thermal measurement. Promote the tested implementation as production 0.9.6/code36. The checklist below is retained as the regression procedure.
 
 1. Add any chosen videos to the queue, enable **Loop videos**, then start the first entry. At natural completion, each next entry must start at0:00; after the final entry, the first must play again. Exercise at least two full cycles.
 2. Try one queued video: it must reopen from0:00 after completion. Turn looping off and verify final completion returns to the library. Stop must also exit playback when looping is on.
