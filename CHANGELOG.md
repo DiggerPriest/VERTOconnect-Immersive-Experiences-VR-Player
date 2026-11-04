@@ -4,6 +4,18 @@
 
 Newest first, following product release milestones. Entries under 0.6.0 and earlier describe the original project; removed conversion features are historical, not current Immivio capabilities. Some development/source snapshots contained features before their product release. Original APK identifiers `0.2` and `0.4` are retained; `0.4` was also called `0.4.0` in release notes. Availability depends on device, server and media capabilities.
 
+## 1.0.0 — VERTOconnect first stable release
+
+- Establish the approved mining factory, workshop ambience, Talk to Jess,
+  headset handover and persistent video queue looping as the 1.0 baseline.
+- Retain the exact scene, audio and playback implementation from production
+  0.9.6. This promotion changes release version metadata only.
+- Build signed production and test/beta APKs as version 1.0.0 / Android code37.
+  Production keeps `com.diggerpriest.immivio360`; test/beta keeps the separate
+  `com.diggerpriest.immivio360.beta` identity and established signing key.
+- Publish distinct APK URLs and SHA256 receipts for both apps. Preserve all
+  previous production and beta release assets.
+
 ## 0.9.6 — Expanded mining factory and persistent queue looping
 
 - Promote the code35 beta accepted by Ryan on 4 November 2026, including the
