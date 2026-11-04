@@ -100,3 +100,10 @@ Rear revision export and local verification:
 - Dedicated real-export motion test now includes the hydraulic ram. The actual exported scene, cold/suspended scene lifecycle, stockpile coal loop, playback tools and headset handover tests all passed on the new export.
 - Playback tools:399 checks passed. Restart coverage now reloads a nonalphabetical multi-video queue and verifies its exact stored order plus loop/shuffle/custom settings.
 - Remaining: native beta build, binary/receipt/hash verification, then one-Quest hardware and visual acceptance. This is not a claim of complete goal acceptance.
+
+Published rear revision (4 November, final status for this candidate):
+- Exact source commit0bee805ceb10e161e9673f2fbe69dcf5b6185f4d passed both native CI hosts in run41759965320. The superseded run was not used.
+- Code35 beta is published under a unique filename on the existing test prerelease. No production release, older test asset or device assignment was replaced. See ../devices/factory-queue-code35-check.md for the direct APK, SHA256, provenance and required hardware checks.
+- Downloaded APK v2 signature/content integrity, package identity/version and ARM64 libraries independently passed. APK-imported geometry/animation signatures match local source; all224 clips and the exact supplied MP3 are present. The packaged compiled queue script exercises single-video and multi-video wrapping.
+- Public unauthenticated download and GitHub's asset digest both match SHA25684d71eddcbed1918abacfba818c67437d02af46e17d8e9e1ecca8b1585d0be1c (148,857,728bytes).
+- Remaining acceptance: Ryan's rear-density/whole-room visual review, one-Quest queue/persistence/presence/Jess regression checks, comfort and performance. The active goal must remain open until these are accepted.
