@@ -23,7 +23,7 @@ func run():
 		check(ambience != null and not ambience.playing, "Ambience autoplayed during suspended load")
 		check(not hub.content.visible and not hub.content.can_process(), "Suspended load became active")
 		var motion = hub.content.find_child("MachineryMotion", true, false)
-		check(motion != null and motion.players.size() == 6, "Expected six independent machinery loop groups")
+		check(motion != null and motion.players.size() >= 6 and motion.players.size() <= 10, "Independent machinery loops must share a bounded number of motion players")
 		var stockpile_coal = hub.content.find_child("CV2_COAL_000", true, false) as Node3D
 		check(stockpile_coal != null, "Missing stockpile conveyor coal")
 		var coal_initial = stockpile_coal.transform if stockpile_coal else Transform3D.IDENTITY

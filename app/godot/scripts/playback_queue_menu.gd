@@ -13,17 +13,17 @@ func _init(owner: Node3D) -> void:
 
 func draw() -> void:
 	var panel: MeshInstance3D = menu._quad(
-		Vector2(1.12, 0.525), Vector3(0, 0.5375, 0.001), Color(menu.PANEL, 0.94), 10
+		Vector2(1.12, 0.445), Vector3(0, 0.4975, 0.001), Color(menu.PANEL, 0.94), 10
 	)
 	menu.add_child(panel)
 	menu._decorations.append(panel)
-	var heading: Label3D = menu._label(menu.I18n.t("Queue"), Vector3(-0.49, 0.76, 0.004), 19)
+	var heading: Label3D = menu._label(menu.I18n.t("Queue"), Vector3(-0.49, 0.68, 0.004), 19)
 	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	menu._glyph(menu.QUICK_CLOSE, "close", Vector2(0.49, 0.76), 0.06, true, menu.I18n.t("Close"))
+	menu._glyph(menu.QUICK_CLOSE, "close", Vector2(0.49, 0.68), 0.06, true, menu.I18n.t("Close"))
 	actions.clear()
 	var entries: Array = menu._state.get("queue_items", [])
 	offset = clampi(offset, 0, maxi(0, ((entries.size() - 1) / ROWS) * ROWS))
-	var shuffle: Label3D = menu._label(menu.I18n.t("Shuffle"), Vector3(-0.49, 0.685, 0.004), 16)
+	var shuffle: Label3D = menu._label(menu.I18n.t("Shuffle"), Vector3(-0.49, 0.605, 0.004), 16)
 	shuffle.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	menu.choices.field(
 		null,
@@ -33,11 +33,11 @@ func draw() -> void:
 			"compact": true,
 			"choices": [{"value": false, "label": "Off"}, {"value": true, "label": "On"}]
 		},
-		Vector2(0.28, 0.685),
-		0.48,
+		Vector2(-0.22, 0.605),
+		0.24,
 		0.055
 	)
-	var loop_label: Label3D = menu._label(menu.I18n.t("Loop videos"), Vector3(-0.49, 0.605, 0.004), 16)
+	var loop_label: Label3D = menu._label(menu.I18n.t("Loop videos"), Vector3(0.015, 0.605, 0.004), 16)
 	loop_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	menu.choices.field(
 		null,
@@ -47,8 +47,8 @@ func draw() -> void:
 			"compact": true,
 			"choices": [{"value": false, "label": "Off"}, {"value": true, "label": "On"}]
 		},
-		Vector2(0.28, 0.605),
-		0.48,
+		Vector2(0.40, 0.605),
+		0.24,
 		0.055
 	)
 	for i in range(offset, mini(entries.size(), offset + ROWS)):

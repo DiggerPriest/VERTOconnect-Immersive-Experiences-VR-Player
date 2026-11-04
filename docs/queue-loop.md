@@ -6,4 +6,6 @@ Queue order, entries, custom-queue mode, shuffle and loop preferences persist in
 
 Automatic advancement still waits for the final presented frame and opens each next entry at zero. It rejects stale completion callbacks and off-head advancement. Headset removal/put-on retains the same active video and restarts it at zero through the existing handover path.
 
-Validation: 374 playback-tools checks passed, including queue lengths 1/2/3/4/10, EOF gates, single-entry reopen from zero, absence handling and loading saved queue settings in a new Main instance. Full local Godot suite: 84/84 passed. Actual Quest hardware and a new APK have not yet been tested or published.
+Validation: 399 playback-tools checks passed, including queue lengths 1/2/3/4/10, EOF gates, single-entry reopen from zero, absence handling and loading saved queue settings in a new Main instance. The initial queue-only change passed all 84 local Godot cases. The expanded scene adds a dedicated real-export motion case; its final complete-suite run is recorded separately. Actual Quest hardware and a new APK have not yet been tested or published.
+
+The visual review uses the actual player menu. Shuffle and Loop videos share the existing options row; all controls stay within the original headset canvas capture envelope.

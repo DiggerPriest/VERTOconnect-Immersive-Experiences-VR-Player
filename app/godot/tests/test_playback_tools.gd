@@ -353,8 +353,15 @@ func _run() -> void:
 		),
 		"Confirmed EOF automatically opens next video from zero despite a legacy auto-play-off preference"
 	)
-	main._on_player_setting("queue_loop", true)
-	check(main.playback_queue.loop, "Queue loop setting reaches live playback")
+	var loop_on_target := -1
+	for target in main.video_menu.choices.targets:
+		var option: Dictionary = main.video_menu.choices.targets[target]
+		if option.get("key") == "queue_loop" and option.get("value") == true:
+			loop_on_target = target
+			break
+	check(loop_on_target >= 0, "Loop videos On is exposed as a queue UI action")
+	main.video_menu._activate(loop_on_target)
+	check(main.playback_queue.loop, "Loop videos button reaches live playback through the menu signal")
 	var loop_settings := ConfigFile.new()
 	loop_settings.load(main.settings_path)
 	check(loop_settings.get_value("playback", "queue_loop", false), "Loop preference is saved for the next launch")
@@ -381,6 +388,8 @@ func _run() -> void:
 	var buttons: Array = main.video_menu._buttons.filter(
 		func(button): return button.enabled and button.node.visible
 	)
+	for button in buttons:
+		check(main.video_menu.capture_envelope().encloses(button.rect), "Queue controls fit the headset canvas capture envelope")
 	for i in buttons.size():
 		for j in range(i + 1, buttons.size()):
 			check(
