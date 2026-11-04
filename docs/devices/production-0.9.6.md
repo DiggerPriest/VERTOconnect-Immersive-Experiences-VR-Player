@@ -1,5 +1,7 @@
 # Production 0.9.6 / code 36
 
+Historical receipt; superseded by [production and dev/test 1.0.0/code37](release-1.0.0.md). This APK remains available.
+
 Published and independently verified on 4 November 2026 after Ryan accepted the code35 beta ("worked 100% perfect") and requested production promotion.
 
 - [Direct Quest APK](https://github.com/DiggerPriest/VERTOconnect-Immersive-Experiences-VR-Player/releases/download/v0.9.6/Immivio-QUEST-0.9.6-release-20261104.apk)

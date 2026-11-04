@@ -1,6 +1,6 @@
 # Training hub acceptance evidence
 
-The current mining factory and queue-loop candidate was accepted by Ryan on 4 November 2026 and promoted to [production 0.9.6/code36](../devices/production-0.9.6.md). The evidence below records the earlier worker-hub prototype, before the mining-factory replacement, and is retained as history.
+The current mining factory and queue-loop implementation was accepted by Ryan on 4 November 2026 and promoted unchanged to [production and dev/test 1.0.0/code37](../devices/release-1.0.0.md). The evidence below records the earlier worker-hub prototype, before the mining-factory replacement, and is retained as history.
 
 At that earlier prototype milestone the complete goal was not achieved. A desktop render is not a Quest performance test.
 

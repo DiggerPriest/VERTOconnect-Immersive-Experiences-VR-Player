@@ -117,3 +117,8 @@ Production publication complete:
 - PR#1 merged into quest-360-mono at ef06da4973eac22dbd3a3e5d2be4c3a2033e0c6c. Tag v0.9.6 / code36 passed both build hosts and automatic publication in run41765514399.
 - The actual signed production Quest APK passed independent identity/version/certificate/v2 integrity checks and a full public download hash check. Its imported geometry/224 animations, exact MP3 and compiled queue wrap behaviour match the accepted baseline.
 - [Production APK, SHA256 and evidence](../devices/production-0.9.6.md). Existing production and beta assets are preserved. Device Manager fleet rollout remains a separate operation.
+
+1.0.0 baseline promotion (4 November):
+- Approved scene, audio and playback implementation retained unchanged. PR#2 merged version metadata as source2d34467277b8b7f381dd9b319e2efbf79d0342f4; tag v1.0.0 / Android code37.
+- Production run41769364147 and test/beta run41769364299 each passed Windows/macOS build and test jobs. Both canonical macOS APKs passed independent package/version/signature and bundled scene/audio/compiled-queue checks, plus full unauthenticated public download hashes.
+- [Both APK URLs, SHA256 values and evidence](../devices/release-1.0.0.md). Both apps retain their separate existing identities and signing key. Earlier release assets remain unchanged; Device Manager rollout is left to the user as requested.
