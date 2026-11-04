@@ -451,6 +451,9 @@ func _run() -> void:
 		"Repeated EOF callback cannot close another session"
 	)
 	main._on_player_setting("queue_loop", true)
+	var restart_order := ["file:///restart-c.mp4", "file:///restart-a.mp4", "file:///restart-b.mp4"]
+	main.video_queue = [{"uri": restart_order[0], "title": "C"}, {"uri": restart_order[1], "title": "A"}, {"uri": restart_order[2], "title": "B"}]
+	main.playback_queue.custom = true
 	main._save_queue()
 	main.queue_free()
 	await process_frame
@@ -458,7 +461,7 @@ func _run() -> void:
 	relaunched.settings_path = directory.path_join("settings.cfg")
 	root.add_child(relaunched)
 	relaunched.set_process(false)
-	check(relaunched.playback_queue.loop and relaunched.playback_queue.shuffle and relaunched.playback_queue.custom and relaunched.video_queue.size() == 1, "A new app instance restores queue entries, loop, shuffle and custom queue settings")
+	check(relaunched.playback_queue.loop and relaunched.playback_queue.shuffle and relaunched.playback_queue.custom and relaunched.video_queue.map(func(item): return str(item.uri)) == restart_order, "A new app instance restores exact queue order, loop, shuffle and custom queue settings")
 	relaunched.queue_free()
 	await process_frame
 	for failure in failures:

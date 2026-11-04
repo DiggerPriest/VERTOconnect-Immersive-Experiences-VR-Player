@@ -93,3 +93,10 @@ Rear density revision implemented:
 - rear-populated-audit.json passed:105 crane samples; no new equipment/column or staircase/conveyor intersections; central route clear; hydraulic rod remains inserted in its fixed barrel over its0.55m stroke and returns to the starting pose.
 - Earlier CI run41757751533 is confirmed completed/cancelled because its scene was superseded. No APK was published from that run.
 - New rear AO bake/export is running. Revalidate the new GLB and ram in Godot, update the exact source pin, run relevant checks, then dispatch a new beta build. The previous candidate GLB in the app does not yet include this density revision.
+
+Rear revision export and local verification:
+- AO source: VERTO_rear_populated_ambient.blend; export factory-rear-populated.glb (39,167,960bytes;244,148triangles;322mesh primitives;111materials;224clips;10textures). SHA2564c2789eeccdd975f1e6c23d997e3c9d4abe8c9f77fe05e32e0c64d72ed525834.
+- This export is now installed in the app on this branch, and its exact public-source pin is updated. No production release asset was changed.
+- Dedicated real-export motion test now includes the hydraulic ram. The actual exported scene, cold/suspended scene lifecycle, stockpile coal loop, playback tools and headset handover tests all passed on the new export.
+- Playback tools:399 checks passed. Restart coverage now reloads a nonalphabetical multi-video queue and verifies its exact stored order plus loop/shuffle/custom settings.
+- Remaining: native beta build, binary/receipt/hash verification, then one-Quest hardware and visual acceptance. This is not a claim of complete goal acceptance.

@@ -12,7 +12,7 @@ func run() -> void:
 	var motion := model.get_node("MachineryMotion")
 	check(not motion.players.is_empty(), "Exported factory has motion players")
 	check(model.find_children("*", "Camera3D", true, false).is_empty(), "Review cameras cannot replace the headset camera")
-	var names := ["EXP_Screen_0_Rotor", "EXP_Screen_1_Rotor", "FIT_Pump_0_ShaftMotion", "FIT_Pump_1_ShaftMotion", "FIT_TestBench_Rotor", "FIT_CraneBridgeMotion", "FIT_CraneTrolleyMotion", "FIT_DrumOre_0_00", "FIT_DrumOre_1_00"]
+	var names := ["EXP_Screen_0_Rotor", "EXP_Screen_1_Rotor", "FIT_Pump_0_ShaftMotion", "FIT_Pump_1_ShaftMotion", "FIT_TestBench_Rotor", "FIT_CraneBridgeMotion", "FIT_CraneTrolleyMotion", "FIT_DrumOre_0_00", "FIT_DrumOre_1_00", "FIT_Rear_RamMotion"]
 	for player in motion.players:
 		player.seek(0, true)
 		player.advance(0)
