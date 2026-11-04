@@ -77,3 +77,19 @@ Reviewed candidate (4 November):
 - Remaining acceptance: final source-suite run on this exact export, beta APK/native CI, one-Quest queue/restart/presence and scene-performance test. Current production remains 0.9.5/code34; candidate uses beta identity/code35.
 
 Crane refinement: runways now at x±8.8m, bridge span17.6m, with32 new brackets/braces aligned to the existing column rows. Dense crane audit:105 poses, no tested structural intersections, loop seam0m. Intentional bracket-to-column fastening contacts are excluded from equipment collision failures. Final export motion test passes after this geometry refinement. Local full-suite run passed85 cases before the crane-only geometry refinement, and the real-export case passed again afterward. Workflow Python tests61/61 and public-source checks passed. Quest hardware acceptance remains open.
+
+User screenshot review (4 November): remaining rear floor is too empty. Do not treat the prior candidate as the final density target. Add substantial inward equipment islands on BOTH sides of the rear lane, not just wall furniture.
+- Rear-left island: heavy wheel/roller component rebuild stands at x-4.8,y9..13, footprint3x5m, maxheight3m; floor contact and retaining supports required.
+- Rear-right island: hydraulic cylinder rebuild/test bench at x4.8,y11..16, footprint3x5m,maxheight2.8m; guarded slow linear ram animation, hydraulic power unit and hoses.
+- Rear-left back staging: stacked mill liners/steel spares at x-5.3,y18,footprint3x3m,maxheight1.8m.
+- Rear-right back plant: hydraulic filtration/power pack at x7,y18,footprint3x2m,maxheight3.5m, connected to the existing rear utility route.
+- Control station: x-4.8,y6.5,footprint2.4x1.5m,maxheight2m. Native editable labels/screens; zero paid generation.
+- Keep the continuous roller-door approach and viewer starting area clear. Check new footprints against the real lane/door geometry before detailed work.
+- The code35 run41757751533 is intermediate; it must not be described as final scene acceptance. Further scene work required before a final test candidate.
+
+Rear density revision implemented:
+- 275 additional parts in FIT_Rear_Workcells: wheel/axle retaining stands, guarded hydraulic cylinder test bench, control station, liner storage, connected hydraulic filter plant, plus a6.1m service bridge with structural girders, column crossheads, handrails and west access stair.
+- Authored checkpoint: build/factory-expansion/VERTO_rear_populated.blend. Loaded into the user's live Blender session after a timestamped recovery copy of their prior scene.
+- rear-populated-audit.json passed:105 crane samples; no new equipment/column or staircase/conveyor intersections; central route clear; hydraulic rod remains inserted in its fixed barrel over its0.55m stroke and returns to the starting pose.
+- Earlier CI run41757751533 is confirmed completed/cancelled because its scene was superseded. No APK was published from that run.
+- New rear AO bake/export is running. Revalidate the new GLB and ram in Godot, update the exact source pin, run relevant checks, then dispatch a new beta build. The previous candidate GLB in the app does not yet include this density revision.

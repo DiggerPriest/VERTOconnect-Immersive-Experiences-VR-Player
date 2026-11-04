@@ -62,6 +62,21 @@ for o in stair:
   if intersects(o,fixed,deps):intersections.append([o.name,fixed.name])
 report['stair_conveyor_intersections']=intersections
 if intersections:report['failures'].append('Stair intersects stockpile conveyor')
+# New hydraulic test bench: only the rod moves; it stays inserted in the
+# fixed barrel and inside the guarded bench envelope across the complete stroke.
+ram=s.objects.get('FIT_Rear_RamMotion')
+if ram:
+ poses=[];barrel=s.objects['FIT_Rear_HydraulicBarrel'];rest=barrel.matrix_world.copy()
+ for frame in [1,61,121,181,241,301,361]:
+  s.frame_set(frame);bpy.context.view_layer.update();rod=s.objects['FIT_Rear_PistonRod']
+  points=[rod.matrix_world@Vector(v) for v in rod.bound_box];low=min(p.y for p in points);high=max(p.y for p in points)
+  poses.append({'frame':frame,'rig_y':ram.location.y,'rod_min_y':low,'rod_max_y':high})
+  if low<10.2 or high<12.3:report['failures'].append('Hydraulic rod left its guide/barrel')
+  if barrel.matrix_world!=rest:report['failures'].append('Hydraulic barrel moved with its ram')
+ report['ram_samples']=poses
+ report['ram_stroke_m']=max(p['rig_y'] for p in poses)-min(p['rig_y'] for p in poses)
+ if abs(poses[0]['rig_y']-poses[-1]['rig_y'])>.0001 or report['ram_stroke_m']<.5:report['failures'].append('Ram stroke/loop failed')
+ s.frame_set(1)
 report['default_camera']=s.camera.name
 if s.camera.name!='CAM_main':report['failures'].append('Wrong default camera')
 report['mesh_objects']=sum(o.type=='MESH' and not o.hide_render for o in s.objects)
