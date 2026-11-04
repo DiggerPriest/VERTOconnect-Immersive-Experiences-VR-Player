@@ -179,6 +179,7 @@ func _advance_queue(session_id: int, uri: String) -> void:
 		return
 	if (
 		host.photo_active
+		or host._handover_absent
 		or host.video.media.session_id != session_id
 		or host.video.local_uri != uri
 		or not host.video.completed_presentation()
@@ -186,7 +187,7 @@ func _advance_queue(session_id: int, uri: String) -> void:
 		return
 	if host.video.loop_enabled:
 		return
-	var item = host.playback_queue.adjacent(uri, 1)
+	var item = host.playback_queue.adjacent(uri, 1, host.playback_queue.loop)
 	if item.is_empty():
 		host._on_menu_action("stop")
 		return
@@ -344,7 +345,7 @@ func _on_player_setting(key: String, value: Variant) -> void:
 	var host := _host_ref.get_ref() as Node3D
 	if not is_instance_valid(host):
 		return
-	if key == "queue_shuffle":
+	if key in ["queue_shuffle", "queue_loop"]:
 		host.playback_queue.configure(key, bool(value), host.video.local_uri)
 		host.settings.set_value("playback", key, bool(value))
 		host.settings.save(host.settings_path)

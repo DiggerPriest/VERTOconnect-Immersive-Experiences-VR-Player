@@ -307,6 +307,7 @@ func _ready() -> void:
 	playback_queue.configure(
 		"queue_shuffle", bool(settings.get_value("playback", "queue_shuffle", false))
 	)
+	playback_queue.configure("queue_loop", bool(settings.get_value("playback", "queue_loop", false)))
 	reclining_mode = bool(settings.get_value("ui", "reclining_mode", false))
 	I18n.use(str(settings.get_value("ui", "language", "auto")))
 	# Global quality also applies to menus and backgrounds.
