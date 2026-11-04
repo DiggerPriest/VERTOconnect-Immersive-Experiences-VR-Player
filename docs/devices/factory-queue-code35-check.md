@@ -1,6 +1,6 @@
 # Code-35 beta acceptance on one Quest
 
-Use the separate **VERTOconnect VR Beta** app (`com.diggerpriest.immivio360.beta`). Production remains code34. Keep all other headsets on the existing production app until this candidate is accepted.
+This beta was accepted and promoted to [production 0.9.6/code36](production-0.9.6.md). The following is the retained pilot checklist. During the pilot, the separate **VERTOconnect VR Beta** app (`com.diggerpriest.immivio360.beta`) was tested while production stayed on code34.
 
 Published candidate, verified 4 November 2026:
 
@@ -8,7 +8,7 @@ Published candidate, verified 4 November 2026:
 - SHA256: `84d71eddcbed1918abacfba818c67437d02af46e17d8e9e1ecca8b1585d0be1c`.
 - Source commit: `0bee805ceb10e161e9673f2fbe69dcf5b6185f4d`. [Windows and macOS CI passed](https://github.com/DiggerPriest/VERTOconnect-Immersive-Experiences-VR-Player/actions/runs/41759965320); the macOS artifact is the published candidate.
 - [Original CI receipt](https://github.com/DiggerPriest/VERTOconnect-Immersive-Experiences-VR-Player/releases/download/v0.9.4-360.24/Factory-Queue-Beta-code35-original-build.json), [candidate manifest](https://github.com/DiggerPriest/VERTOconnect-Immersive-Experiences-VR-Player/releases/download/v0.9.4-360.24/Factory-Queue-Beta-code35-manifest.json) and [independent verification](https://github.com/DiggerPriest/VERTOconnect-Immersive-Experiences-VR-Player/releases/download/v0.9.4-360.24/Factory-Queue-Beta-code35-verification.json) preserve provenance and validation limits. The original receipt retains `source_dirty:true`; it has not been rewritten to claim a clean build tree.
-- Independently checked Android package/version, ARM64 libraries, ZIP integrity, APK v2 signature/content digest and expected signing certificate. Extracted geometry and all224 animation clips match the reviewed local scene semantically; the bundled MP3 matches the supplied file SHA256. The compiled queue script passed single-entry and two-entry wrap checks. Desktop resource inspection excludes the Android-only XR extension and does not prove Android execution.
+- Independently checked Android package/version, ARM64 libraries, ZIP integrity, APK v2 signature/content digest and expected signing certificate. Extracted geometry and all 224 animation clips match the reviewed local scene semantically; the bundled MP3 matches the supplied file SHA256. The compiled queue script passed single-entry and two-entry wrap checks. Desktop resource inspection excludes the Android-only XR extension and does not prove Android execution.
 - An unauthenticated full public download returned HTTP200 with APK content type and the same size/SHA256. GitHub's asset digest agrees. All older prerelease assets and the complete production release metadata remained unchanged.
 
 Acceptance update, 4 November 2026: Ryan reported "perfect, worked 100% perfect" after agreeing to test code35, then requested "now we push to live". This is user-reported headset and visual acceptance, not an independently captured frame-time/thermal measurement. Promote the tested implementation as production 0.9.6/code36. The checklist below is retained as the regression procedure.

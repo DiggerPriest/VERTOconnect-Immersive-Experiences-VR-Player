@@ -1,6 +1,8 @@
 # Training hub acceptance evidence
 
-The complete goal is not achieved yet. A desktop render is not a Quest performance test.
+The current mining factory and queue-loop candidate was accepted by Ryan on 4 November 2026 and promoted to [production 0.9.6/code36](../devices/production-0.9.6.md). The evidence below records the earlier worker-hub prototype, before the mining-factory replacement, and is retained as history.
+
+At that earlier prototype milestone the complete goal was not achieved. A desktop render is not a Quest performance test.
 
 Local validation at this revision: 78 Godot suites passed the strict error and
 explicit-completion gate; 55 workflow tests passed. All 24 imported scene textures

@@ -112,3 +112,8 @@ User acceptance and production promotion (4 November):
 - After agreeing to test code35 on one Quest, Ryan reported "perfect, worked 100% perfect", then instructed "now we push to live". This accepts the scene and queue candidate; it does not supply independently measured Quest frame-time or thermal data.
 - Production candidate 0.9.6/code36 retains the exact accepted scene/audio and playback scripts. Only release version metadata, distribution identity and acceptance/release documentation change for promotion.
 - Merge into the actual default branch quest-360-mono, build/tag through the existing signed production pipeline, verify the published APK and deliver its distinct production URL/SHA256. Keep previous release assets and the separate beta.
+
+Production publication complete:
+- PR#1 merged into quest-360-mono at ef06da4973eac22dbd3a3e5d2be4c3a2033e0c6c. Tag v0.9.6 / code36 passed both build hosts and automatic publication in run41765514399.
+- The actual signed production Quest APK passed independent identity/version/certificate/v2 integrity checks and a full public download hash check. Its imported geometry/224 animations, exact MP3 and compiled queue wrap behaviour match the accepted baseline.
+- [Production APK, SHA256 and evidence](../devices/production-0.9.6.md). Existing production and beta assets are preserved. Device Manager fleet rollout remains a separate operation.
