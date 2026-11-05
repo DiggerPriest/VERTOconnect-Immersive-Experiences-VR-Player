@@ -4,7 +4,7 @@ func _initialize():
 	if not preload("res://tests/support/test_result.gd").prepare(self): return
 	call_deferred("run")
 func run():
-	var model = load("res://environments/mining_facility/mining_facility.tscn").instantiate()
+	var model = load(preload("res://scripts/training_hub.gd").MINING_SCENE).instantiate()
 	root.add_child(model)
 	var rocks: Array[Node3D] = []
 	for node in model.find_children("CV2_COAL_*", "Node3D", true, false): rocks.append(node)

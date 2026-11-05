@@ -19,7 +19,7 @@ static func prepare(tree: SceneTree) -> bool:
 	# Warm this shared fixture before UI construction; retain a separate cold
 	# asynchronous scene-loader test, including suspension during load.
 	if DisplayServer.get_name() == "headless" and case_name != "test_mining_environment":
-		tree.set_meta("mining_fixture", load("res://environments/mining_facility/mining_facility.tscn"))
+		tree.set_meta("mining_fixture", load(preload("res://scripts/training_hub.gd").MINING_SCENE))
 	return true
 
 

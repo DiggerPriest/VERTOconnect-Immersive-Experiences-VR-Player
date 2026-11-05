@@ -1,0 +1,14 @@
+# Factory density revision: current readiness
+
+Updated 6 November 2026 after verifying live Blender delivery. Authoritative source/export/checksum: `/Users/rpriest/VERTOconnect-Scene-Work/density-performance/current-density-build.json`.
+
+- Density: approximately2x projected equipment coverage across six fixed seated views (0.482915059/0.242297=1.993x). Additional workcells,13added conveyors, service equipment, two66m-total inner ventilation branches and guarded bays.
+- Layout: new-geometry aisle and49sampled crane poses passed before the final low-level relocation. Relocated reel and complete motor-test bench have zero external mesh intersections; both remain outside the central aisle and below the crane sweep. Fan sightlines restored: no new equipment occludes the sampled fan faces; existing columns partly mask fanB. Native and runtime affected views inspected.
+- Materials/motion/runtime: seven local tests passed before relocation (density-final-tests.json); affected material/instancing and machinery tests rerun afterward (fan-bench-materials.log,fan-bench-machinery.log). No native headset playback/performance proof.
+- Optimisation:312moving sources in25instance groups, static material batching, export-only roof/sign simplification, preserved source meshes. Final desktop draw counts137/114/116/116/117/89 vs original293/96/310/91/96/107. Clean medians1.464–1.555ms vs recorded original1.977–2.373ms. These are desktop samples, not Quest FPS.
+- Live delivery verified: Blender has VERTO_factory_density_review_20261106-093358.blend open, with 6,485 scene objects and a portal-facing camera. Native screenshot confirms the expanded factory is visible. Previous open scene preserved as live_before_final_density_20261106-093154.blend. The audited geometry/export source remains recorded separately in the manifest. No new APK/release published. Final headset comfort/performance check remains open.
+- Known limit: one unresolved RefCounted shutdown warning; no evidence it causes headset lag.
+
+Local scene work and targeted checks are ready for delivery review. Keep the goal active pending final hardware review; do not claim Quest lag fixed.
+
+Beta preparation (6 November): the actual Quest 3 preset exports a standalone 56,438,056-byte resource pack. From outside the project directory, Godot loads the expanded scene and 30-second MP3 from that pack; the prior scene is absent. All 61 workflow tests pass, and the 984-file proposed source set passes Check-PublicSource with the new exact GLB pin and required source/provenance records. No APK has been built. This host lacks Gradle and the standard Android SDK/JDK installations; the existing GitHub beta workflow is the delivery route. Noninteractive DiggerPriest credential lookup returned no credential, so no authenticated GitHub action was taken. Project-scoped DiggerPriest access has been requested.

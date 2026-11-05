@@ -2,6 +2,7 @@ extends "res://scripts/media_surface.gd"
 
 signal changed
 signal thumbnail_ready(uri: String)
+signal history_changed
 
 const PlatformMethods := preload("res://scripts/platform_methods.gd")
 const State := preload("res://scripts/mpv_media_state.gd")
@@ -716,6 +717,7 @@ func clear_history() -> void:
 	if recent_files.clear_all() and not recent_files.save():
 		Log.record("recent_file_save_failed", {"error": recent_files.last_error})
 	_history_started = false
+	history_changed.emit()
 
 
 func _resume(uri: String) -> int:
@@ -738,6 +740,7 @@ func _record_history(force: bool = false) -> void:
 		or int(pair.get("generation", 0)) != media.generation
 	):
 		return
+	var newly_played := not _history_started
 	if not _history_started:
 		if not recent_files.opened(local_uri, display_name, _file_permission_persisted):
 			return
@@ -752,6 +755,7 @@ func _record_history(force: bool = false) -> void:
 	_history_save_ms = now + 5000
 	if not recent_files.save():
 		Log.record("recent_file_save_failed", {"error": recent_files.last_error})
+	if newly_played:history_changed.emit()
 
 
 func _request_revision(position_ms: int = -1, mode: String = "") -> void:

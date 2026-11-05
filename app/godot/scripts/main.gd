@@ -170,6 +170,7 @@ var settings_path: String:
 		_preferences.settings_path = value
 var background: Node
 var training_hub: Node3D
+var mining_noticeboard: Node3D
 var _hub_wearer_present := true
 var _hub_application_active := true
 var verto_room: Node3D
@@ -488,6 +489,12 @@ func _ready() -> void:
 	training_hub.state_changed.connect(_update_background)
 	add_child(training_hub)
 	training_hub.configure_environment(world.environment)
+	mining_noticeboard = preload("res://scripts/mining_noticeboard.gd").new()
+	mining_noticeboard.catalog = video.recent_files
+	mining_noticeboard.chosen.connect(_on_noticeboard_chosen)
+	add_child(mining_noticeboard)
+	video.history_changed.connect(func(): mining_noticeboard.refresh_history())
+	video.thumbnail_ready.connect(mining_noticeboard.thumbnail_updated)
 	_update_background()
 	if Engine.has_singleton("QuestPlayer"):
 		platform_plugin = Engine.get_singleton("QuestPlayer")
@@ -591,6 +598,9 @@ func _apply_system_recenter() -> void:
 
 func _process(delta: float) -> void:
 	_update_training_hub_activity()
+	if mining_noticeboard and mining_noticeboard.visible:
+		_update_noticeboard_pointer("left_hand")
+		_update_noticeboard_pointer("right_hand")
 	if _handover_recenter_after > 0 and Time.get_ticks_msec() >= _handover_recenter_after and _head_tracked() and _head_pose() != null:
 		_handover_recenter_after = 0
 		_recenter()
@@ -1358,3 +1368,48 @@ func _update_training_hub_activity() -> void:
 	), {"media": media_active, "jess": _jess_opened, "wearer": _hub_wearer_present,
 		"passthrough": temporary_passthrough, "application": _hub_application_active,
 		"focus": _input_focused(), "menu": recent_menu != null and recent_menu.visible})
+	if mining_noticeboard:
+		mining_noticeboard.set_active(background.choice == "mining_facility" and training_hub.active and training_hub.content != null and video.history_enabled)
+
+
+func _on_noticeboard_chosen(uri: String, title: String) -> void:
+	# A poster is a play action, even when the library previously entered add mode.
+	_queue_add_mode = false
+	_on_library_chosen(uri, title)
+
+
+func _noticeboard_hit(ray: Variant) -> bool:
+	if not mining_noticeboard or not mining_noticeboard.visible or ray == null or not _input_focused():return false
+	var hit: Dictionary = mining_noticeboard.ray_hit(ray[0],ray[1])
+	if hit.is_empty():return false
+	var menu := _active_menu()
+	if menu:
+		if menu.has_pointer_capture():return false
+		var obstruction: Dictionary = menu.ray_panel_hit(ray[0],ray[1])
+		if not obstruction.is_empty() and float(obstruction.distance)<float(hit.distance):return false
+	return true
+
+
+func _update_noticeboard_pointer(hand: String, pressed: bool=false) -> bool:
+	if not mining_noticeboard or not mining_noticeboard.visible:return false
+	var ray: Variant = _ray(hand)
+	if not _noticeboard_hit(ray):
+		mining_noticeboard.cancel_pointer(hand)
+		return false
+	if pressed:return mining_noticeboard.press_pointer(hand,ray[0],ray[1],true)
+	mining_noticeboard.update_pointer(hand,ray[0],ray[1],true)
+	return true
+
+
+func _noticeboard_mouse(event: InputEvent) -> bool:
+	if not mining_noticeboard or not mining_noticeboard.visible or not event is InputEventMouse:return false
+	var camera: Camera3D = _viewer().view_camera
+	if not camera:return false
+	var ray := [camera.project_ray_origin(event.position),camera.project_ray_normal(event.position)]
+	if not _noticeboard_hit(ray):
+		mining_noticeboard.cancel_pointer("desktop")
+		return false
+	if event is InputEventMouseButton and event.pressed and event.button_index==MOUSE_BUTTON_LEFT:
+		return mining_noticeboard.press_pointer("desktop",ray[0],ray[1],true)
+	if event is InputEventMouseMotion:mining_noticeboard.update_pointer("desktop",ray[0],ray[1],true)
+	return false

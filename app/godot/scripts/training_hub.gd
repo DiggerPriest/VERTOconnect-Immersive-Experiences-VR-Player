@@ -2,7 +2,7 @@ extends Node3D
 ## Optional, world-fixed environment. Loading continues while content is suspended.
 signal state_changed
 const SCENE := "res://environments/training_hub/training_hub.tscn"
-const MINING_SCENE := "res://environments/mining_facility/mining_facility.tscn"
+const MINING_SCENE := "res://environments/mining_facility_density/mining_facility.tscn"
 var scene_path := SCENE
 var _loading_path := ""
 var selected := false

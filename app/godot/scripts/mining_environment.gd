@@ -21,6 +21,10 @@ func _ready() -> void:
 	for mesh in find_children("*", "MeshInstance3D", true, false):
 		for index in range(mesh.mesh.get_surface_count()):
 			var material = mesh.get_active_material(index)
+			if material is StandardMaterial3D and (str(material.resource_name).begins_with("PACKED_PBR_") or str(material.resource_name).begins_with("AO_")):
+				# COLOR_0 contains either packed paint or the authored AO multiplier.
+				# The glTF importer leaves both disabled; retain their shading.
+				material.vertex_color_use_as_albedo = true
 			if material is StandardMaterial3D and "concrete_floor" in material.resource_name:
 				var adjusted = material.duplicate()
 				adjusted.albedo_color = Color(0.64, 0.76, 0.92)
@@ -30,3 +34,7 @@ func _ready() -> void:
 	motion.name = "MachineryMotion"
 	add_child(motion)
 	motion.configure(self)
+	var instances = preload("res://scripts/mining_mesh_instances.gd").new()
+	instances.name = "CoalInstances"
+	add_child(instances)
+	instances.configure(self)

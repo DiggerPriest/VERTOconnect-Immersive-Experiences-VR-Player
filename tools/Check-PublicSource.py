@@ -60,6 +60,7 @@ FONT_PINS = {
 }
 # Reviewed local training geometry and CC0 character exports; never a general GLB exemption.
 TRAINING_HUB_PINS = {
+    "app/godot/environments/mining_facility_density/mining_facility.glb": "2bef01d1ecabd0850d710ad2cbce9940696e5cf0ebe5598fbdc0ebf974f7b4f8",
     "app/godot/environments/mining_facility/mining_facility.glb": "4c2789eeccdd975f1e6c23d997e3c9d4abe8c9f77fe05e32e0c64d72ed525834",
     "app/godot/environments/training_hub/carpentry_worker.glb": "b64568c1897a61f1c872fdba1fe1496aea64e43702db4be1f7cc8e100b1bd3e3",
     "app/godot/environments/training_hub/electrical_worker.glb": "ad2be90e297d8d3b5b713bfb1c236242f5cdbe47c3819f16e1f7d805cae74558",
@@ -71,6 +72,9 @@ USER_AUDIO_PINS = {
     "app/godot/audio/mining_background.mp3": "4270756480a1566c0788383eb1c7d5ff4797008fc03399cda247fa23d947cb98",
 }
 TRAINING_HUB_REQUIRED = {
+    "tools/training_hub/densify_factory.py",
+    "tools/training_hub/build_density_export.py",
+    "docs/training-hub/density-export.md",
     "tools/training_hub/build_hub.py",
     "tools/training_hub/build_worker.py",
     "tools/training_hub/audit_glb.py",

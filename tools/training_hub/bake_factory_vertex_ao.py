@@ -14,13 +14,22 @@ def static(o):
   if current.animation_data or current.constraints:return False
   current=current.parent
  return True
+# Evaluate cut/bevel geometry before writing AO: vertices created afterward
+# by a Boolean otherwise receive zero colour, making whole wall triangles black.
+# This process owns a disposable export copy, never the editable live source.
+for o in list(s.objects):
+ if o.type=='MESH' and not o.hide_render and static(o) and o.modifiers and o.name.startswith(('FIT_','EXP_','STR_','ENV_wall','WKS_gallery','DENS_')):
+  evaluated=o.evaluated_get(deps)
+  o.data=bpy.data.meshes.new_from_object(evaluated,preserve_all_data_layers=True,depsgraph=deps)
+  o.modifiers.clear()
+bpy.context.view_layer.update();deps=bpy.context.evaluated_depsgraph_get()
 occluders=[o for o in s.objects if o.type=='MESH' and not o.hide_render and static(o) and not o.name.startswith('YARD_sky')]
 vertices=[];polygons=[]
 for o in occluders:
  obj=o.evaluated_get(deps);me=obj.to_mesh();base=len(vertices)
  vertices.extend(obj.matrix_world@v.co for v in me.vertices);polygons.extend(tuple(base+i for i in p.vertices) for p in me.polygons);obj.to_mesh_clear()
 tree=BVHTree.FromPolygons(vertices,polygons)
-targets=[o for o in occluders if o.name.startswith(('FIT_','EXP_','STR_','ENV_wall','WKS_gallery')) and o.data.vertices]
+targets=[o for o in occluders if o.name.startswith(('FIT_','EXP_','STR_','ENV_wall','WKS_gallery','DENS_')) and o.data.vertices]
 materials={};report={'method':'16 cosine hemisphere rays, 1.5m radius, distance-weighted; static occluders only','meshes':[]};n=16;total=0
 for o in targets:
  if o.data.users>1:o.data=o.data.copy()

@@ -10,7 +10,7 @@ func _initialize():
 
 func run():
 	var hub = preload("res://scripts/training_hub.gd").new()
-	hub.scene_path = "res://environments/mining_facility/mining_facility.tscn"
+	hub.scene_path = hub.MINING_SCENE
 	root.add_child(hub)
 	# Loading while Jess/video is active must not briefly animate the scene.
 	hub.set_context(true, false)
@@ -22,8 +22,20 @@ func run():
 		var ambience = hub.content.find_child("MiningAmbience", true, false)
 		check(ambience != null and not ambience.playing, "Ambience autoplayed during suspended load")
 		check(not hub.content.visible and not hub.content.can_process(), "Suspended load became active")
+		check(hub.content.find_children("DENS_ORE_*", "MeshInstance3D", true, false).size() == 130, "Selected factory must include all thirteen added conveyor coal loops")
+		var instances = hub.content.find_child("CoalInstances", true, false)
+		check(instances != null and instances.batches.size() == 25, "Selected factory must use expanded moving-part instancing")
 		var motion = hub.content.find_child("MachineryMotion", true, false)
-		check(motion != null and motion.players.size() >= 6 and motion.players.size() <= 10, "Independent machinery loops must share a bounded number of motion players")
+		check(motion != null and motion.players.size() == 11, "Independent machinery loops must share a bounded number of motion players")
+		# Eleven distinct authored durations now include the 37.5 s and 20 s
+		# east conveyor loops. Equal-duration tracks must remain consolidated.
+		var groups := {}
+		if motion:
+			for player in motion.players:
+				var clip: Animation = player.get_animation("loop")
+				var key := str(player.get_node(player.root_node).get_path()) + ":" + str(clip.length)
+				check(not groups.has(key), "Compatible motion was split into extra players: " + key)
+				groups[key] = true
 		var stockpile_coal = hub.content.find_child("CV2_COAL_000", true, false) as Node3D
 		check(stockpile_coal != null, "Missing stockpile conveyor coal")
 		var coal_initial = stockpile_coal.transform if stockpile_coal else Transform3D.IDENTITY

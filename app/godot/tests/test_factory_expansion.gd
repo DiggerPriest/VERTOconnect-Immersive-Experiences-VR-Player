@@ -7,12 +7,12 @@ func _initialize() -> void:
 	if not preload("res://tests/support/test_result.gd").prepare(self): return
 	call_deferred("run")
 func run() -> void:
-	var model := load("res://environments/mining_facility/mining_facility.tscn").instantiate() as Node3D
+	var model := load(preload("res://scripts/training_hub.gd").MINING_SCENE).instantiate() as Node3D
 	root.add_child(model)
 	var motion := model.get_node("MachineryMotion")
 	check(not motion.players.is_empty(), "Exported factory has motion players")
 	check(model.find_children("*", "Camera3D", true, false).is_empty(), "Review cameras cannot replace the headset camera")
-	var names := ["EXP_Screen_0_Rotor", "EXP_Screen_1_Rotor", "FIT_Pump_0_ShaftMotion", "FIT_Pump_1_ShaftMotion", "FIT_TestBench_Rotor", "FIT_CraneBridgeMotion", "FIT_CraneTrolleyMotion", "FIT_DrumOre_0_00", "FIT_DrumOre_1_00", "FIT_Rear_RamMotion"]
+	var names := ["EXP_Screen_0_Rotor", "EXP_Screen_1_Rotor", "FIT_Pump_0_ShaftMotion", "FIT_Pump_1_ShaftMotion", "FIT_TestBench_Rotor", "FIT_CraneBridgeMotion", "FIT_CraneTrolleyMotion", "FIT_DrumOre_0_00", "FIT_DrumOre_1_00", "FIT_Rear_RamMotion", "DENS_Compressor_FanMotion"]
 	for player in motion.players:
 		player.seek(0, true)
 		player.advance(0)
@@ -22,7 +22,15 @@ func run() -> void:
 		check(is_instance_valid(node), "Authored moving equipment survives export: " + label)
 		if node: before[label] = node.global_transform
 	var rigid := model.find_children("RIGID_EXP_Screen*", "MeshInstance3D", true, false)
-	check(rigid.size() >= 4, "Drum panels and hoops are batched while preserving both moving parents")
+	# Material packing merges the former two surfaces per drum into one mesh.
+	# Check each independently animated parent retains the measured geometry.
+	for label in ["EXP_Screen_0_Rotor", "EXP_Screen_1_Rotor"]:
+		var vertex_count := 0
+		for mesh in rigid:
+			if str(mesh.get_parent().name) != label: continue
+			for surface in mesh.mesh.get_surface_count():
+				vertex_count += mesh.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX].size()
+		check(vertex_count >= 6464, "Complete drum panels and hoops remain under " + label)
 	var initial_rigid: Array[Transform3D] = []
 	for mesh in rigid: initial_rigid.append(mesh.global_transform)
 	for player in motion.players: player.advance(14.3)

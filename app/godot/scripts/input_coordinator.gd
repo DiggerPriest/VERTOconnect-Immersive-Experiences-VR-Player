@@ -19,6 +19,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	var host := _host_ref.get_ref() as Node3D
 	if not is_instance_valid(host):
 		return
+	if host.has_method("_noticeboard_mouse") and host._noticeboard_mouse(event):
+		host.get_viewport().set_input_as_handled()
+		return
 	if host.photo_active and host.photo.inspect:
 		if event is InputEventMouseMotion:
 			host._inspect_desktop_ray = [
@@ -266,6 +269,8 @@ func _on_pointer_button(action: String, hand: String) -> void:
 		return
 	if action == "menu_button":
 		host._toggle_player_menu()
+		return
+	if action == "trigger_click" and host.has_method("_update_noticeboard_pointer") and host._update_noticeboard_pointer(hand,true):
 		return
 	var menu = host._active_menu()
 	if action == "grip_click":
