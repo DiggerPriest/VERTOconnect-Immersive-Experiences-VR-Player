@@ -1,6 +1,6 @@
 # Premium factory development review — 6 November 2026
 
-Development branch: `feature/factory-density-performance`. Candidate: `1.0.1-beta.2`, Android code 39. This document records local review; a successful GitHub build and verified APK are separate delivery gates. No production promotion is authorised.
+Development branch: `feature/factory-density-performance`. Candidate: `1.0.1-beta.2`, Android code 39. Both build hosts passed GitHub run 42153789794 at application commit `384f5d292133fded829da0b91fbe256a4ff405b9`. The downloaded macOS APK independently passes package/version, expected signing certificate, APK v2 signature/content integrity and build-receipt checks. No production promotion is authorised.
 
 ## Changes and composition
 
@@ -39,3 +39,11 @@ A one-instance ObjectDB shutdown warning remains in the real Main playback test.
 ## Quest review
 
 Check the six directions and small natural head movements; confirm comfortable scale, portal/sign readability and poster targeting. Play real files to verify their titles/thumbnails, history updates and playback. Observe belt transfers, rotating machinery and crane movement, then check head-removal restart behaviour, factory audio and sustained turning performance. Report issues against this development build before any main merge.
+
+## Verified beta download
+
+[Download code-39 APK](https://github.com/DiggerPriest/VERTOconnect-Immersive-Experiences-VR-Player/releases/download/v0.9.4-360.24/VERTOconnect-Quest-Factory-Beta-code39-20261106.apk). Version `1.0.1-beta.2`, package `com.diggerpriest.immivio360.beta`. The URL uses the existing isolated test-release tag; the filename, manifest and Android version identify this new build. Existing assets were preserved.
+
+SHA-256: `093afece5ddc7ede42aa413b06de9b4e4bf18d5ce48216146828059a06e4cf48`.
+
+An unauthenticated full download returned HTTP 200 and matched all 180,485,542 bytes and the checksum. See `premium-review/download-verification.json` and `premium-review/build-manifest.json`. The application build is commit `384f5d2`; subsequent review-document commits do not alter its contents. Main and production were not changed.

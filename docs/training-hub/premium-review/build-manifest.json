@@ -1,0 +1,17 @@
+{
+  "sha256": "093afece5ddc7ede42aa413b06de9b4e4bf18d5ce48216146828059a06e4cf48",
+  "bytes": 180485542,
+  "application_id": "com.diggerpriest.immivio360.beta",
+  "version_code": 39,
+  "version_name": "1.0.1-beta.2",
+  "source_commit": "384f5d292133fded829da0b91fbe256a4ff405b9",
+  "certificate_sha256": "e50eecdd0d06e6509417f9ac5a13509876e95a609208164ab790b94bfda69b3d",
+  "device_execution": "not_verified",
+  "apk_url": "https://github.com/DiggerPriest/VERTOconnect-Immersive-Experiences-VR-Player/releases/download/v0.9.4-360.24/VERTOconnect-Quest-Factory-Beta-code39-20261106.apk",
+  "ci_run": 42153789794,
+  "channel": "beta",
+  "scene_sha256": "88f778104020c43e05809dab0aa5752b4fbb18d866c5efeb392e7728085b3aac",
+  "native_source_sha256": "af99efac55b47d856f86eef438838462a17f8245a4f9a3c30ab10742d08bd87a",
+  "audio_seconds": 30,
+  "production_changed": false
+}
