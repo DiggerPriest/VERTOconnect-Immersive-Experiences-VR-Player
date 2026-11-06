@@ -47,7 +47,6 @@ func run() -> void:
 			group.batch.free()
 		batches.free()
 	var load_ms := (Time.get_ticks_usec() - started) / 1000.0
-	if variant == "density_bounded": preload("res://scripts/mining_light_ranges.gd").apply(model)
 	var lights: Array = []
 	for light: Light3D in model.find_children("*", "Light3D", true, false):
 		lights.append({"name": str(light.name), "type": light.get_class(), "energy": light.light_energy, "shadows": light.shadow_enabled, "range": light.omni_range if light is OmniLight3D else (light.spot_range if light is SpotLight3D else 0.0)})
@@ -73,10 +72,11 @@ func run() -> void:
 		if mesh_groups[key].size() > 1: repeats.append({"count": mesh_groups[key].size(), "examples": mesh_groups[key].slice(0,4)})
 	var camera := Camera3D.new()
 	root.add_child(camera)
-	camera.position = Vector3(0, 1.25, 0)
+	var eye_height := float(args[3]) if args.size() > 3 else 1.6
+	camera.position = Vector3(0, eye_height, 0)
 	camera.fov = 85
 	camera.current = true
-	var views := {"portal": Vector3(1,2,-22), "fans": Vector3(16,2.4,-14), "conveyor": Vector3(-13,2,-4), "rear": Vector3(-1,2,22), "processing": Vector3(12,2.5,8), "plant": Vector3(-12,2.5,7)}
+	var views := {"portal": Vector3(0,1.25,-22), "fans": Vector3(16,2.4,-14), "conveyor": Vector3(-13,2,-4), "rear": Vector3(-1,2,22), "processing": Vector3(12,2.5,8), "plant": Vector3(-12,2.5,7), "left": Vector3(-22,1.25,0), "right": Vector3(22,1.25,0), "up": Vector3(0,23.25,-.01), "down": Vector3(0,-20.75,-.01)}
 	var samples: Array = []
 	for label in views:
 		camera.look_at(views[label])
@@ -97,7 +97,7 @@ func run() -> void:
 		times.sort()
 		samples.append({"view": label, "draw_calls": draw_calls, "primitives": primitives, "frame_interval_ms_median": times[times.size()/2], "frame_interval_ms_p95": times[int(times.size()*.95)], "frames": times.size()})
 		root.get_texture().get_image().save_png(folder.path_join(variant+"_"+label+".png"))
-	var report := {"scope": "desktop Compatibility renderer, 1280x720, 2xMSAA; Quest unmeasured", "variant": variant, "mesh_lod_threshold": root.mesh_lod_threshold, "load_and_motion_setup_ms": load_ms, "mesh_instances": model.find_children("*", "MeshInstance3D", true, false).size(), "surfaces": surface_count, "lights": lights, "motion_groups": motions, "repeated_meshes": repeats, "views": samples, "static_memory_bytes": Performance.get_monitor(Performance.MEMORY_STATIC), "video_memory_bytes": Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED)}
+	var report := {"scope": "desktop Compatibility renderer, 1280x720, 2xMSAA; Quest unmeasured", "variant": variant, "eye_height": eye_height, "mesh_lod_threshold": root.mesh_lod_threshold, "load_and_motion_setup_ms": load_ms, "mesh_instances": model.find_children("*", "MeshInstance3D", true, false).size(), "surfaces": surface_count, "lights": lights, "motion_groups": motions, "repeated_meshes": repeats, "views": samples, "static_memory_bytes": Performance.get_monitor(Performance.MEMORY_STATIC), "video_memory_bytes": Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED)}
 	var file := FileAccess.open(folder.path_join(variant+".json"), FileAccess.WRITE)
 	if file == null:
 		push_error("Cannot write profile report")

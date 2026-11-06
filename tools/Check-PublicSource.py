@@ -60,7 +60,7 @@ FONT_PINS = {
 }
 # Reviewed local training geometry and CC0 character exports; never a general GLB exemption.
 TRAINING_HUB_PINS = {
-    "app/godot/environments/mining_facility_density/mining_facility.glb": "2bef01d1ecabd0850d710ad2cbce9940696e5cf0ebe5598fbdc0ebf974f7b4f8",
+    "app/godot/environments/mining_facility_density/mining_facility.glb": "88f778104020c43e05809dab0aa5752b4fbb18d866c5efeb392e7728085b3aac",
     "app/godot/environments/mining_facility/mining_facility.glb": "4c2789eeccdd975f1e6c23d997e3c9d4abe8c9f77fe05e32e0c64d72ed525834",
     "app/godot/environments/training_hub/carpentry_worker.glb": "b64568c1897a61f1c872fdba1fe1496aea64e43702db4be1f7cc8e100b1bd3e3",
     "app/godot/environments/training_hub/electrical_worker.glb": "ad2be90e297d8d3b5b713bfb1c236242f5cdbe47c3819f16e1f7d805cae74558",
@@ -68,6 +68,11 @@ TRAINING_HUB_PINS = {
     "app/godot/environments/training_hub/plumbing_worker.glb": "a24f52b01146cef43bd6d0e6e72fb35b33d7cda7afc637dd8b75f9d0d75b10de",
     "app/godot/environments/training_hub/training_hub.glb": "26bb5f2a03eb9cdd5b168384b7539968a71d5199ce79777e21b892b56eab3226",
 }
+# Exact reviewed self-contained authoring source, outside the Godot import tree.
+BLENDER_SOURCE_PINS = {
+    "assets/authoring/mining_factory.blend": "af99efac55b47d856f86eef438838462a17f8245a4f9a3c30ab10742d08bd87a",
+}
+BLENDER_SOURCE_REQUIRED = {"docs/training-hub/native-authoring.md", "tools/training_hub/build_density_export.py"}
 USER_AUDIO_PINS = {
     "app/godot/audio/mining_background.mp3": "4270756480a1566c0788383eb1c7d5ff4797008fc03399cda247fa23d947cb98",
 }
@@ -121,7 +126,12 @@ def check_files(files):
         approved_mesh = name in HAND_BUFFER_PINS
         approved_font = name in FONT_PINS
         approved_hub = name in TRAINING_HUB_PINS and hashlib.sha256(data).hexdigest() == TRAINING_HUB_PINS[name]
+        approved_blend = name in BLENDER_SOURCE_PINS and hashlib.sha256(data).hexdigest() == BLENDER_SOURCE_PINS[name]
         approved_audio = name in USER_AUDIO_PINS and hashlib.sha256(data).hexdigest() == USER_AUDIO_PINS[name]
+        if name in BLENDER_SOURCE_PINS and not approved_blend:
+            errors.append(f"{name}: Blender source differs from reviewed asset")
+        if path.suffix.lower() == ".blend" and name not in BLENDER_SOURCE_PINS:
+            errors.append(f"{name}: unreviewed Blender source")
         if name in USER_AUDIO_PINS and not approved_audio:
             errors.append(f"{name}: audio differs from pinned user-provided asset")
         if name in TRAINING_HUB_PINS and not approved_hub:
@@ -158,7 +168,7 @@ def check_files(files):
             "third_party/README.md",
         }:
             errors.append(f"{name}: internal documentation excluded")
-        limit_mib = 50 if approved_hub else 25
+        limit_mib = 50 if approved_hub or approved_blend else 25
         if len(data) > limit_mib * 1024 * 1024:
             errors.append(f"{name}: unexpected file over {limit_mib} MiB")
         try:
@@ -167,7 +177,7 @@ def check_files(files):
             if (
                 path.suffix.lower()
                 not in {".png", ".jpg", ".jpeg", ".webp", ".mp4", ".jar"}
-                and not approved_mesh and not approved_font and not approved_hub and not approved_audio
+                and not approved_mesh and not approved_font and not approved_hub and not approved_audio and not approved_blend
             ):
                 errors.append(f"{name}: unreviewed binary type")
             continue
@@ -202,6 +212,10 @@ def check_files(files):
         for name in sorted(TRAINING_HUB_REQUIRED):
             if not files.get(name, b"").strip():
                 errors.append(f"{name}: training hub source/provenance missing")
+    if BLENDER_SOURCE_PINS.keys() & files.keys():
+        for name in sorted(BLENDER_SOURCE_REQUIRED):
+            if not files.get(name, b"").strip():
+                errors.append(f"{name}: Blender source provenance missing")
     required = {
         "LICENSE",
         "README.md",

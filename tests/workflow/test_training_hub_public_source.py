@@ -62,6 +62,30 @@ class TrainingHubBoundaryTests(unittest.TestCase):
         self.files["app/godot/large.jpg"] = b"\xff" * (26 * 1024 * 1024)
         self.assertTrue(any("large.jpg: unexpected file over 25 MiB" in e for e in checker.check_files(self.files)))
 
+    def test_blender_source_requires_exact_bytes_path_and_provenance(self):
+        asset = "assets/authoring/mining_factory.blend"
+        self.files.update({name: (ROOT / name).read_bytes() for name in checker.BLENDER_SOURCE_REQUIRED})
+        self.files[asset] = (ROOT / asset).read_bytes()
+        self.assertEqual(checker.check_files(self.files), [])
+        altered = dict(self.files)
+        altered[asset] += b"changed"
+        self.assertTrue(any("Blender source differs" in e for e in checker.check_files(altered)))
+        copied = dict(self.files)
+        copied["assets/authoring/unreviewed.blend"] = self.files[asset]
+        self.assertTrue(any("unreviewed Blender" in e for e in checker.check_files(copied)))
+        for required in checker.BLENDER_SOURCE_REQUIRED:
+            missing = dict(self.files)
+            del missing[required]
+            self.assertTrue(any(required in e and "provenance missing" in e for e in checker.check_files(missing)))
+
+    def test_blender_source_size_exception_is_capped(self):
+        asset = "assets/authoring/mining_factory.blend"
+        self.files.update({name: (ROOT / name).read_bytes() for name in checker.BLENDER_SOURCE_REQUIRED})
+        for size, accepted in [(26, True), (51, False)]:
+            self.files[asset] = b"\xff" * (size * 1024 * 1024)
+            with patch.dict(checker.BLENDER_SOURCE_PINS, {asset: hashlib.sha256(self.files[asset]).hexdigest()}):
+                self.assertEqual(not checker.check_files(self.files), accepted)
+
 
 if __name__ == "__main__":
     unittest.main()
