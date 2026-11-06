@@ -20,6 +20,8 @@ These scene audit images omit runtime UI. The real application's board was separ
 
 ![Runtime board with explicit fixture titles](premium-review/board-fixture-titles.png)
 
+[16-second machinery preview](premium-review/machinery-preview.mp4) — a fixed camera at the viewer origin, looking toward the transfer conveyor. Captured at 30 FPS in Godot movie mode; this is an animation illustration, not a performance measurement.
+
 ## Validation and limits
 
 - Native dependency audit: nine packed file images, no linked libraries, included/built-in fonts; 6,522 source objects. Editable source and reproduction instructions are in `native-authoring.md`.

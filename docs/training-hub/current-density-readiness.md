@@ -1,16 +1,16 @@
-# Factory density revision: current readiness
+# Factory development readiness
 
-Updated 6 November 2026 after verifying live Blender delivery. Authoritative source/export/checksum: `/Users/rpriest/VERTOconnect-Scene-Work/density-performance/current-density-build.json`.
+Updated 6 November 2026. The current premium development review supersedes the earlier density-only checkpoints. See [the full review and fixed views](premium-development-review.md) and [editable source instructions](native-authoring.md).
 
-- Density: approximately2x projected equipment coverage across six fixed seated views (0.482915059/0.242297=1.993x). Additional workcells,13added conveyors, service equipment, two66m-total inner ventilation branches and guarded bays.
-- Layout: new-geometry aisle and49sampled crane poses passed before the final low-level relocation. Relocated reel and complete motor-test bench have zero external mesh intersections; both remain outside the central aisle and below the crane sweep. Fan sightlines restored: no new equipment occludes the sampled fan faces; existing columns partly mask fanB. Native and runtime affected views inspected.
-- Materials/motion/runtime: seven local tests passed before relocation (density-final-tests.json); affected material/instancing and machinery tests rerun afterward (fan-bench-materials.log,fan-bench-machinery.log). No native headset playback/performance proof.
-- Optimisation:312moving sources in25instance groups, static material batching, export-only roof/sign simplification, preserved source meshes. Final desktop draw counts137/114/116/116/117/89 vs original293/96/310/91/96/107. Clean medians1.464–1.555ms vs recorded original1.977–2.373ms. These are desktop samples, not Quest FPS.
-- Live delivery verified: Blender has VERTO_factory_density_review_20261106-093358.blend open, with 6,485 scene objects and a portal-facing camera. Native screenshot confirms the expanded factory is visible. Previous open scene preserved as live_before_final_density_20261106-093154.blend. The audited geometry/export source remains recorded separately in the manifest. No new APK/release published. Final headset comfort/performance check remains open.
-- Known limit: one unresolved RefCounted shutdown warning; no evidence it causes headset lag.
+- Scene and native source are pushed on `feature/factory-density-performance` at `384f5d292133fded829da0b91fbe256a4ff405b9`.
+- Candidate identity: `1.0.1-beta.2`, Android code 39, beta package `com.diggerpriest.immivio360.beta`. It can coexist with production.
+- GitHub beta build run `42153789794` was dispatched with `Release` and `distribution_channel=beta`; both macOS and Windows jobs were confirmed running. APK verification and distribution remain pending.
+- Editable source: `assets/authoring/mining_factory.blend`, 6,522 objects, nine packed textures, no linked libraries, included/built-in fonts. Three historical non-auto-running conveyor text blocks were reviewed and checksum-pinned. The source dependency audit passes.
+- Live Blender was switched to a separate code-39 review copy after saving a recovery copy of the previously open scene. Readback confirms the updated paint response, 54 retained screen components and hidden obsolete floor inlay.
+- Ten fixed-position exported-scene views were inspected. Real Main captures separately exercise the empty and populated runtime board. All four tilted posters are selectable from the default camera. Test titles are fixtures; native decoder thumbnail extraction is not proved by those images.
+- Seven relevant runtime checks pass: exported materials/instance transforms, machinery, noticeboard history/rays, Main playback dispatch, stockpile coal motion, headset handover logic and immersive lifecycle. The latter two are simulated desktop checks, not physical headset results.
+- All 63 workflow tests pass. Public-source checks pass for 996 tracked files, including exact native/export asset pins. No unreviewed binary exemption was added.
+- Optimisation retains 312 moving sources in 25 instance groups, static batching, source-preserving roof/sign export simplification, texture mipmaps and packed colours. The latest paced desktop frame intervals must not be compared as GPU timings with older unpaced profiles. Quest performance is unmeasured.
+- Known limit: one ObjectDB instance is reported at shutdown by the Main playback test. It is not established as a headset performance cause.
 
-Local scene work and targeted checks are ready for delivery review. Keep the goal active pending final hardware review; do not claim Quest lag fixed.
-
-Beta preparation (6 November): the actual Quest 3 preset exports a standalone 56,438,056-byte resource pack. From outside the project directory, Godot loads the expanded scene and 30-second MP3 from that pack; the prior scene is absent. All 61 workflow tests pass, and the 984-file proposed source set passes Check-PublicSource with the new exact GLB pin and required source/provenance records. No APK has been built. This host lacks Gradle and the standard Android SDK/JDK installations; the existing GitHub beta workflow is the delivery route. Noninteractive DiggerPriest credential lookup returned no credential, so no authenticated GitHub action was taken. Project-scoped DiggerPriest access has been requested.
-
-Source checkpoint committed locally as e1cb978. Beta candidate version is 1.0.1-beta.1, Android code 38 (higher than released code 37). Dispatch must explicitly use distribution_channel=beta and build_type=Release; do not tag or promote this candidate to production. The source remains unpushed pending DiggerPriest access.
+Physical Quest testing belongs to the user and does not block development delivery. APK integrity, application identity, signature, source receipt and download hash must still be verified before sharing this candidate as ready to install. No merge into main or production promotion is authorised.
